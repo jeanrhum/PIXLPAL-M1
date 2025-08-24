@@ -456,8 +456,8 @@ String processJsonCommand(uint8_t type, uint16_t leagueId) {
 
 bool fetchLiveMatchTeamLogos(SpiRamJsonDocument& doc, size_t matchIndex) {
 
-    PNG_OnlineImage_t pnglogoBatch[2];
-    SVG_OnlineImage_t svgLogoBatch[2];
+    Mtb_OnlineImage_t pnglogoBatch[2];
+    Mtb_OnlineImage_t svgLogoBatch[2];
 
     JsonArray matches = doc["response"].as<JsonArray>();
     if (matchIndex >= matches.size()) {
@@ -521,8 +521,8 @@ bool fetchLiveMatchTeamLogos(SpiRamJsonDocument& doc, size_t matchIndex) {
 
 bool fetchFixturesMatchTeamLogos(SpiRamJsonDocument& doc, size_t matchIndex) {
 
-    PNG_OnlineImage_t pnglogoBatch[2];
-    SVG_OnlineImage_t svgLogoBatch[2];
+    Mtb_OnlineImage_t pnglogoBatch[2];
+    Mtb_OnlineImage_t svgLogoBatch[2];
 
     JsonArray matches = doc["response"].as<JsonArray>();
     if (matchIndex >= matches.size()) {

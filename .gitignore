@@ -1,4 +1,4 @@
-/components/meterbit_graphics/*.cpp
+#/components/meterbit_graphics/*.cpp
 /components/meterbit_engine/include/pxp_secret_keys.h
 
 /build/*

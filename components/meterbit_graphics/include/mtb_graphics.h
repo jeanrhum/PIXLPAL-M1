@@ -36,29 +36,14 @@
 
     extern SemaphoreHandle_t onlinePNGsDrawReady_Sem;
 
-    struct PNG_LocalImage_t {
+    struct Mtb_LocalImage_t {
         char imagePath[50] = {0};
         uint16_t xAxis = 0;
         uint16_t yAxis = 0;
         int8_t scale = 1;
     };
 
-    struct SVG_LocalImage_t {
-        char imagePath[50] = {0};
-        uint16_t xAxis = 0;
-        uint16_t yAxis = 0;
-        int8_t scale = 1;
-    };
-
-    struct PNG_OnlineImage_t {
-        char imageLink[300] = {0};
-        uint16_t xAxis = 0;
-        uint16_t yAxis = 0;
-        int8_t scale = 1;
-    };
-
-
-    struct SVG_OnlineImage_t {
+    struct Mtb_OnlineImage_t {
         char imageLink[300] = {0};
         uint16_t xAxis = 0;
         uint16_t yAxis = 0;
@@ -66,22 +51,12 @@
     };
 
     typedef struct {
-        PNG_OnlineImage_t meta;       // original input
-        uint8_t* pngBuffer = nullptr;
-        size_t pngSize = 0;
+        Mtb_OnlineImage_t meta;       // original input
+        uint8_t* imageBuffer = nullptr;
+        size_t imageSize = 0;
         bool isReady = false;
         bool failed = false;
-    } PNG_PreloadedImage_t;
-
-
-    typedef struct {
-        SVG_OnlineImage_t meta;
-        uint8_t* svgBuffer = nullptr;
-        size_t svgSize = 0;
-        bool isReady = false;
-        bool failed = false;
-    } SVG_PreloadedImage_t;
-
+    } Mtb_PreloadedImage_t;
 
 
 typedef struct
@@ -93,31 +68,37 @@ typedef struct
     extern void mtb_Do_Nothing_Void_Fn(void);
     typedef void (*ImgWipeFn_ptr)(void);
 
-    extern PNG_LocalImage_t statusBarItems[];
+    extern Mtb_LocalImage_t statusBarItems[];
     extern uint16_t panelBrightness;
     extern uint16_t currentStatusLEDcolor;
 
-    extern void mtb_Time_Setup_Init(void);
+//    extern void mtb_Time_Setup_Init(void);
 
-    extern BaseType_t mtb_Draw_Local_Png(const PNG_LocalImage_t&);
-    extern BaseType_t mtb_Draw_Local_Svg(const SVG_LocalImage_t&);
-    extern void mtb_Draw_Local_Png_Task(void *);   
 
-    extern void mtb_Draw_Online_Png(const PNG_OnlineImage_t* images, size_t drawPNGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);
-    extern void mtb_Download_Multi_Png(const PNG_OnlineImage_t* images, size_t drawPNGsCount);
+    // USER FUNCTIONS
+    extern BaseType_t mtb_Draw_Local_Png(const Mtb_LocalImage_t&);
+    extern BaseType_t mtb_Draw_Local_Svg(const Mtb_LocalImage_t&);
+
+    extern void mtb_Draw_Online_Png(const Mtb_OnlineImage_t* images, size_t drawPNGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);
+    extern void mtb_Download_Multi_Png(const Mtb_OnlineImage_t* images, size_t drawPNGsCount);
     extern bool mtb_Draw_Multi_Png(size_t drawPNGsCount, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);
 
-    extern void mtb_Draw_Online_Svg(const SVG_OnlineImage_t* images, size_t drawSVGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);
-    extern void mtb_Download_Multi_Svg(const SVG_OnlineImage_t* images, size_t drawSVGsCount);
+    extern void mtb_Draw_Online_Svg(const Mtb_OnlineImage_t* images, size_t drawSVGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);
+    extern void mtb_Download_Multi_Svg(const Mtb_OnlineImage_t* images, size_t drawSVGsCount);
     extern bool mtb_Draw_Multi_Svg(size_t drawSVGsCount, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);
 
-    extern void mtb_Show_Status_Bar_Icon(const PNG_LocalImage_t&);
-    extern void mtb_Wipe_Status_Bar_Icon(const PNG_LocalImage_t &);
-
     extern void mtb_Set_Status_RGB_LED(uint16_t color, uint8_t brightness = (uint8_t) panelBrightness/2);
-    extern void mtb_Draw_Status_Bar(void);
+    //************************************************************************************************************************************************* */
 
+
+    // SUPPORT FUNCTIONS
+    extern void mtb_Show_Status_Bar_Icon(const Mtb_LocalImage_t&);
+    extern void mtb_Wipe_Status_Bar_Icon(const Mtb_LocalImage_t &);
+    extern void mtb_Draw_Status_Bar(void);
     extern String mtb_Get_Flag_Url_By_Country_Name(const String& countryName, const String& flagType);
+
+    extern void mtb_Draw_Local_Png_Task(void *);
+    extern void mtb_Draw_Local_Svg_Task(void *);
 
     extern QueueHandle_t nvsAccessQueue;
     extern QueueHandle_t rgb_led_queue;

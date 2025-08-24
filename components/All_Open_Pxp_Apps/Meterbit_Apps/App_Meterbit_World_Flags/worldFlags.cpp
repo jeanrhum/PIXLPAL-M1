@@ -43,7 +43,7 @@ void worldFlags_App_Task(void* dApplication){
   //************************************************************************************ */
   mtb_Read_Nvs_Struct("worldFlagsData", &worldFlagsInfo, sizeof(WorldFlags_Data_t));
 
-    SVG_OnlineImage_t imageHolder({"placeHolder", 16, 0, 1});
+    Mtb_OnlineImage_t imageHolder({"placeHolder", 16, 0, 1});
 
 while (MTB_APP_IS_ACTIVE == pdTRUE){
 
@@ -108,7 +108,7 @@ void selectDisplayFlag(JsonDocument& dCommand){
 
     ESP_LOGI(TAG, "Select Country: %s \n", countryFlag);
 
-    SVG_OnlineImage_t imageHolder({"placeHolder", 16, 0, 1});
+    Mtb_OnlineImage_t imageHolder({"placeHolder", 16, 0, 1});
     
     strcpy(worldFlagsInfo.countryName, countryFlag);
     strcpy(imageHolder.imageLink, getFlag4x3ByCountry(countryFlag).c_str());

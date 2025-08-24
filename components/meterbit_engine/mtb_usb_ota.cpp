@@ -103,7 +103,7 @@ static void msc_ota_event_handler(void *arg, esp_event_base_t event_base, int32_
     case ESP_MSC_OTA_READY_UPDATE:
         ESP_LOGI(TAG, "ESP_MSC_OTA_READY_UPDATE");
             if(litFS_Ready){
-            PNG_LocalImage_t otaUSB_Image {"/batIcons/otaUSB.png", 0, 0};
+            Mtb_LocalImage_t otaUSB_Image {"/batIcons/otaUSB.png", 0, 0};
             mtb_Draw_Local_Png(otaUSB_Image);
             }
             usbOTA_Text.mtb_Write_String("SOFTWARE UPDATE");

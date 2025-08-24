@@ -80,7 +80,7 @@ String semver_t_ToString(const semver_t &version);
             otaUpdateTextBar->mtb_Write_String("0%");
         }
         else if (id == GHOTA_EVENT_FIRMWARE_UPDATE_PROGRESS){
-            //PNG_LocalImage_t updtBar_Icon {"/batIcons/updtBar_", 1, 53};
+            //Mtb_LocalImage_t updtBar_Icon {"/batIcons/updtBar_", 1, 53};
             sprintf(softProgress, "%d", *((int *)event_data));
             //sprintf(updtBar_Icon.imagePath + 27, "%d", *((int *)event_data));
             //strcat(updtBar_Icon.imagePath, ".png");
@@ -91,7 +91,7 @@ String semver_t_ToString(const semver_t &version);
             else otaUpdateTextBar->mtb_Write_String("OK");
         }
         else if (id == GHOTA_EVENT_FINISH_UPDATE){   
-            // PNG_LocalImage_t wipeUpdtBar_Icon {"/littlefs/batIcons/wipeUpdtBar.png", 0, 53};
+            // Mtb_LocalImage_t wipeUpdtBar_Icon {"/littlefs/batIcons/wipeUpdtBar.png", 0, 53};
             // mtb_Draw_Local_Png(wipeUpdtBar_Icon);
             // ESP_LOGI(TAG, "Firmware Update Completed Successfully\n");   
         }
@@ -131,7 +131,7 @@ String semver_t_ToString(const semver_t &version);
         // }
         else if (id == GHOTA_EVENT_PENDING_REBOOT){
             otaUpdateTextTop->mtb_Write_Colored_String("DEVICE UPDATED", CYAN);
-            PNG_LocalImage_t wipeUpdtBar_Icon {"/batIcons/wipeUpdtBar.png", 0, 53};
+            Mtb_LocalImage_t wipeUpdtBar_Icon {"/batIcons/wipeUpdtBar.png", 0, 53};
             mtb_Draw_Local_Png(wipeUpdtBar_Icon);
             otaUpdateTextBot->mtb_Write_Colored_String("SUCCESSFULLY", CYAN);
             ESP_LOGI(TAG, "Ghota Pending Reboot.\n");
