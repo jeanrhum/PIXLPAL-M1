@@ -15,8 +15,8 @@
 EXT_RAM_BSS_ATTR TaskHandle_t encoder_Task_H = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t button_Task_H = NULL;
 
-EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *encoder_Task_Sv = new Mtb_Service_With_Fns(encoder_Task, &encoder_Task_H, "Encoder Task", 10240, 0, pdTRUE, 1); // Review this task Stack Size
-EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *button_Task_Sv = new Mtb_Service_With_Fns(button_Task, &button_Task_H, "Button Task", 10240, 0, pdTRUE, 1); // Review this task Stack Size
+EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *encoder_Task_Sv = new Mtb_Service_With_Fns(encoder_Task, &encoder_Task_H, "Encoder Task", 10240, 1, pdTRUE, 1); // Review this task Stack Size
+EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *button_Task_Sv = new Mtb_Service_With_Fns(button_Task, &button_Task_H, "Button Task", 10240, 1, pdTRUE, 1); // Review this task Stack Size
 
 button_t pressButton{
   .pin = (gpio_num_t)GPIO_NUM_0,
@@ -53,14 +53,14 @@ void device_SD_RS(power_States_t wake_Plan){
 void encoder_Task (void* dService){
     Mtb_Services *thisServ = (Mtb_Services *)dService;
     rotary_encoder_event_t encoder_Data;
-    while (MTB_SERV_IS_ACTIVE == pdTRUE) if(xQueueReceive(encoderEvent_Q, &encoder_Data, pdMS_TO_TICKS(1)) == pdTRUE) encoderFn_ptr(encoder_Data.dir);
+    while (MTB_SERV_IS_ACTIVE == pdTRUE) if(xQueueReceive(encoderEvent_Q, &encoder_Data, pdMS_TO_TICKS(portMAX_DELAY)) == pdTRUE) encoderFn_ptr(encoder_Data.dir);
     mtb_End_This_Service(thisServ);
 }
 
 void button_Task (void* dService){
     Mtb_Services *thisServ = (Mtb_Services *)dService;
 	button_event_t button_Data;
-    while (MTB_SERV_IS_ACTIVE == pdTRUE) if(xQueueReceive(buttonEvent_Q, &button_Data, pdMS_TO_TICKS(1)) == pdTRUE) buttonFn_ptr(button_Data);
+    while (MTB_SERV_IS_ACTIVE == pdTRUE) if(xQueueReceive(buttonEvent_Q, &button_Data, pdMS_TO_TICKS(portMAX_DELAY)) == pdTRUE) buttonFn_ptr(button_Data);
     mtb_End_This_Service(thisServ);
 }
 

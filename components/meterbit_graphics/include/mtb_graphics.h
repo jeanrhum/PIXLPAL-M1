@@ -62,7 +62,7 @@
         char imagePath[50] = {0};
         uint16_t xAxis = 0;
         uint16_t yAxis = 0;
-        int8_t loopCount = 1;
+        int32_t loopCount = 1;
     };
 
 typedef struct{

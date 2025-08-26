@@ -20,9 +20,12 @@ void exampleDrawImageApp_Task(void* dApplication){
       delay(1000);
     } 
 
-    mtb_Draw_Local_Gif({"/mtblg/mtbStart.gif", 0, 0, 1});
+    // DRAW GIF ANIMATION
+    // mtb_Draw_Local_Gif({"/mtblg/mtbStart.gif", 0, 0, 1});
+    mtb_Draw_Local_Gif({"/clkgif/clk00.gif", 0, 0, 10});    
 
-    //mtb_Draw_Local_Png({"/mtblg/pixlpal.png", 0, 0});
+    // DRAW GIF ANIMATION
+    mtb_Draw_Local_Png({"/batIcons/fmRadio.png", 25, 10});
 
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {
