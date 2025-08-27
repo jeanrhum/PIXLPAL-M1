@@ -12,6 +12,8 @@
 #include "mtb_engine.h"
 #include "mtb_github.h"
 
+static const char TAG[] = "mtb_system";
+
 EXT_RAM_BSS_ATTR TaskHandle_t encoder_Task_H = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t button_Task_H = NULL;
 
@@ -74,7 +76,7 @@ void mtb_System_Init(void){
             // Allocate memory for row pointers
     Mtb_FixedText_t::scratchPad = (uint8_t **)heap_caps_malloc(MATRIX_WIDTH * sizeof(uint8_t *), MALLOC_CAP_SPIRAM);
     if (Mtb_FixedText_t::scratchPad == NULL) {
-        //ESP_LOGI(TAG, "Failed to allocate memory for row pointers\n");
+        ESP_LOGI(TAG, "Failed to allocate memory for row pointers\n");
         return;
     }
 
@@ -82,7 +84,7 @@ void mtb_System_Init(void){
     for (int i = 0; i < MATRIX_WIDTH; i++){
         Mtb_FixedText_t::scratchPad[i] = (uint8_t *)heap_caps_malloc(MATRIX_HEIGHT * sizeof(uint8_t), MALLOC_CAP_SPIRAM);
         if (Mtb_FixedText_t::scratchPad[i] == NULL) {
-            //ESP_LOGI(TAG, "Failed to allocate memory for row %d\n", i);
+        ESP_LOGI(TAG, "Failed to allocate memory for row %d\n", i);
         return;
         }
     }

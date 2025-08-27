@@ -1,7 +1,9 @@
-idf_component_register(SRCS "mtb_usb_ota.cpp" "mtb_engine.cpp" "mtb_status_bar_clock.cpp"
+
+
+idf_component_register(
+                    SRCS "mtb_status_bar_clock.cpp" "mtb_engine.cpp"
                     INCLUDE_DIRS "include"
-                    PRIV_REQUIRES usb fatfs driver esp_timer
-                    REQUIRES meterbit_system meterbit_graphics meterbit_graphics meterbit_mqtt ArduinoJson-7xx meterbit_github PicoMQTT arduino-esp32 ebtn meterbit_wifi meterbit_ota ESP32-audioI2S meterbit_audio espressif__esp_msc_ota meterbit_ble ESP-Mail-Client
+                    REQUIRES driver esp_timer meterbit_usb meterbit_system meterbit_graphics meterbit_mqtt ArduinoJson-7xx meterbit_github PicoMQTT arduino-esp32 ebtn meterbit_wifi meterbit_ota meterbit_ble
                     
 ################    Mtb_Applications START HERE
                     App_Meterbit_Apple_Notifications
@@ -35,4 +37,6 @@ idf_component_register(SRCS "mtb_usb_ota.cpp" "mtb_engine.cpp" "mtb_status_bar_c
                     App_Example_Draw_Image
                     )
 
-                
+
+# Add the static library file to the component
+#target_link_libraries(${COMPONENT_LIB} "${CMAKE_CURRENT_SOURCE_DIR}/libmeterbit_engine.a")

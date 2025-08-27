@@ -7,7 +7,6 @@
 #include "mtb_graphics.h"
 #include "mtb_engine.h"
 #include "mtb_cal_clk.h"
-#include "mtb_text_scroll.h"
 
 EXT_RAM_BSS_ATTR TaskHandle_t statusBarClock_H = NULL;
 
