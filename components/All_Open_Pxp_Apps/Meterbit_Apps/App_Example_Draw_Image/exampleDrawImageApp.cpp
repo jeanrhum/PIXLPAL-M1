@@ -18,20 +18,21 @@ void exampleDrawImageApp_Task(void* dApplication){
     while ((Mtb_Applications::internetConnectStatus != true) && (MTB_APP_IS_ACTIVE == pdTRUE)){
       ESP_LOGI(TAG, "Waiting for internet connection...");
       delay(1000);
-    } 
+    }
 
-    // DRAW GIF ANIMATION
-    // mtb_Draw_Local_Gif({"/mtblg/mtbStart.gif", 0, 0, 1});
-    mtb_Draw_Local_Gif({"/clkgif/clk00.gif", 0, 0, 10});    
+    // DRAW GIF ANIMATION FROM SPIFFS
+    //mtb_Draw_Local_Gif({"/clkgif/clk00.gif", 0, 0, 10});
 
-    // DRAW GIF ANIMATION
-    mtb_Draw_Local_Png({"/batIcons/fmRadio.png", 25, 10});
+    // DRAW PNG IMAGE FROM SPIFFS
+    // mtb_Draw_Local_Png({"/batIcons/fmRadio.png", 25, 10});
 
+    // DRAW SVG IMAGE FROM SPIFFS
+    mtb_Draw_Local_Svg({"/batIcons/spain.svg", 0, 0, 1});
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {
 ESP_LOGI(TAG, "Images drawn on the display.");
 
-delay(15000);
+delay(5000);
 }
 
 // Clean up the application before exiting

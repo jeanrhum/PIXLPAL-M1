@@ -46,7 +46,7 @@ void  firmwareUpdateTask(void* dApplication){
     
     if(litFS_Ready){
         uint8_t countdown = panelBrightness, countup = 0;
-        // mtb_Draw_Local_Gif("/mtblg/mtbStart.gif", 0, 0, 1);
+        // mtb_Draw_Local_Gif({"/mtblg/mtbStart.gif", 0, 0, 1});
         // delay(1000);
         // while (countdown-- > 0){
         //     dma_display->setBrightness(countdown);
