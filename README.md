@@ -73,31 +73,49 @@ The firmware demonstrates how to build network-enabled visual applications such 
 #include "mtb_littleFs.h"
 #include "mtb_ble.h"
 #include "esp_heap_caps.h"
+#include "exampleEncoderBeepApp.h"
 using namespace std;
 
-static const char TAG[] = "PXP-MAIN PROG";
+static const char TAG[] = "PXP-MAIN_PROG";
 
-extern "C" void app_main() {
+extern "C" void app_main(){
+    // Initialize Pixlpal System
     mtb_LittleFS_Init();
     mtb_RotaryEncoder_Init();
     mtb_System_Init();
     mtb_Ble_Comm_Init();
 
+    // Attempt OTA Update from USB Flash Drive
     mtb_Launch_This_App(firmwareUpdate_App);
-    while (Mtb_Applications::firmwareOTA_Status != pdFALSE) delay(1000);
+    while(Mtb_Applications::firmwareOTA_Status != pdFALSE) delay(1000);
 
+    // Read the last executed App from NVS
     mtb_Read_Nvs_Struct("currentApp", &currentApp, sizeof(Mtb_CurrentApp_t));
 
+    // Initialize Wifi
     mtb_Wifi_Init();
 
-    mtb_Launch_This_App(exampleWriteTextApp);
 
+    // Launch the Last Executed App or Launch a particular App after boot-up
+    // mtb_General_App_Lunch(currentApp);
+    mtb_Launch_This_App(exampleEncoderBeep_App);
+
+    // Declare Variable for monitoring Free/Available internal SRAM
     size_t free_sram = 0;
-    while (1) {
-        free_sram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-        ESP_LOGI(TAG, "############ Free Internal SRAM: %zu bytes\n", free_sram);
-        delay(2000);
-    }
+
+    // While Loop prints available Internal SRAM every 2 seconds
+    while (1){
+    // Get the total free size of internal SRAM
+    free_sram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+
+    // Print the free SRAM size
+    ESP_LOGI(TAG, "############ Free Internal SRAM: %zu bytes\n", free_sram);
+    //ESP_LOGI(TAG, "Memory: Free %dKiB Low: %dKiB\n", (int)xPortGetFreeHeapSize()/1024, (int)xPortGetMinimumEverFreeHeapSize()/1024);
+
+    // delay 2 seconds
+    delay(2000);
+     }
+
 }
 
 ```
