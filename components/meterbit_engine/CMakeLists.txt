@@ -31,10 +31,6 @@ idf_component_register(
                     App_Meterbit_StudioLight
                     App_Meterbit_World_Clock   
                     App_Meterbit_World_Flags
-
-                    App_Example_Write_Text
-                    App_Example_Draw_Shapes
-                    App_Example_Draw_Image
                     )
 
 

@@ -313,7 +313,7 @@ extern Mtb_Applications_FullScreen* otaUpdateApplication_App;
 
 // All User Apps
 // Clocks and Timers
-extern Mtb_Applications_StatusBar* classicClock_App;            // App Communication Route: 0/0
+extern Mtb_Applications_StatusBar* calendarClock_App;            // App Communication Route: 0/0
 extern Mtb_Applications_FullScreen* pixelAnimClock_App;         // App Communication Route: 0/1
 extern Mtb_Applications_StatusBar* worldClock_App;              // App Communication Route: 0/2
 extern Mtb_Applications_FullScreen* bigClockCalendar_App;        // App Communication Route: 0/3
@@ -358,7 +358,8 @@ extern Mtb_Applications_FullScreen* audSpecAnalyzer_App;        // App Communica
 extern Mtb_Applications_StatusBar *spotify_App;                 // App Communication Route: 9/3
 
 // Example Apps
-extern Mtb_Applications_FullScreen* exampleWriteTextApp;                  // App Communication Route: 10/0
-extern Mtb_Applications_StatusBar* exampleDrawShapes_App;                // App Communication Route: 10/1
-extern Mtb_Applications_FullScreen* exampleDrawImages_App;                 // App Communication Route: 10/2
+extern Mtb_Applications_FullScreen* exampleWriteTextApp;        
+extern Mtb_Applications_StatusBar* exampleDrawShapes_App;          
+extern Mtb_Applications_FullScreen* exampleDrawImages_App;          
+extern Mtb_Applications_StatusBar* exampleEncoderBeep_App;               
 #endif

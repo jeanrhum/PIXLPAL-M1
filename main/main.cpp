@@ -6,6 +6,7 @@
 #include "mtb_littleFs.h"
 #include "mtb_ble.h"
 #include "esp_heap_caps.h"
+#include "exampleEncoderBeepApp.h"
 using namespace std;
 
 static const char TAG[] = "PXP-MAIN_PROG";
@@ -29,8 +30,8 @@ extern "C" void app_main(){
 
 
     // Launch the Last Executed App or Launch a particular App after boot-up
-    //mtb_General_App_Lunch(currentApp);
-    mtb_Launch_This_App(exampleDrawImages_App);
+    // mtb_General_App_Lunch(currentApp);
+    mtb_Launch_This_App(exampleEncoderBeep_App);
 
     // Declare Variable for monitoring Free/Available internal SRAM
     size_t free_sram = 0;

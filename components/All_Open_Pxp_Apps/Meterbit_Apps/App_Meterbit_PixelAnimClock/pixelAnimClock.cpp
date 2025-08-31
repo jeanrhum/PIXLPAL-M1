@@ -427,7 +427,7 @@ void pixelAnimChangeButton(button_event_t button_Data){
               break;
 
             case BUTTON_PRESSED_LONG:
-              mtb_Launch_This_App(classicClock_App);
+              mtb_Launch_This_App(calendarClock_App);
               break;
 
             case BUTTON_CLICKED:

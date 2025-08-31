@@ -588,7 +588,7 @@ void mtb_General_App_Lunch(Mtb_CurrentApp_t dAppPath){
 //********NUMBER 0 */
 void mtb_Clk_Tim_AppLunch(uint16_t dAppNumber){
     switch(dAppNumber){
-        case 0: mtb_Launch_This_App(classicClock_App); break;
+        case 0: mtb_Launch_This_App(calendarClock_App); break;
         case 1: mtb_Launch_This_App(pixelAnimClock_App); break;
         case 2: mtb_Launch_This_App(worldClock_App); break;
         case 3: mtb_Launch_This_App(bigClockCalendar_App); break;
@@ -648,7 +648,7 @@ void mtb_Finance_App_Lunch(uint16_t dAppNumber){
 void mtb_Sports_App_Lunch(uint16_t dAppNumber){
     switch(dAppNumber){
         case 0: mtb_Launch_This_App(liveFootbalScores_App); break;
-        // case 1: mtb_Launch_This_App(classicClock_App); break;
+        // case 1: mtb_Launch_This_App(calendarClock_App); break;
 
         default: ESP_LOGI(TAG, "No Apps to Lunch.\n");
             break;
@@ -669,12 +669,12 @@ void mtb_Animations_App_Lunch(uint16_t dAppNumber){
 void mtb_Notifications_App_Lunch(uint16_t dAppNumber){
     switch(dAppNumber){
         case 0: mtb_Launch_This_App(apple_Notifications_App); break;
-        // case 1: mtb_Launch_This_App(classicClock_App); break;
-        // case 2: mtb_Launch_This_App(classicClock_App); break;
-        // case 3: mtb_Launch_This_App(classicClock_App); break; 
-        // case 4: mtb_Launch_This_App(classicClock_App); break; 
-        // case 5: mtb_Launch_This_App(classicClock_App); break;
-        // case 6: mtb_Launch_This_App(classicClock_App); break;
+        // case 1: mtb_Launch_This_App(calendarClock_App); break;
+        // case 2: mtb_Launch_This_App(calendarClock_App); break;
+        // case 3: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 4: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 5: mtb_Launch_This_App(calendarClock_App); break;
+        // case 6: mtb_Launch_This_App(calendarClock_App); break;
 
         default: ESP_LOGI(TAG, "No Apps to Lunch.\n");
             break;
@@ -685,12 +685,12 @@ void mtb_Notifications_App_Lunch(uint16_t dAppNumber){
 void mtb_Ai_App_Lunch(uint16_t dAppNumber){
     switch(dAppNumber){
         case 0: mtb_Launch_This_App(chatGPT_App); break;
-        // case 1: mtb_Launch_This_App(classicClock_App); break; 
-        // case 2: mtb_Launch_This_App(classicClock_App); break; 
-        // case 3: mtb_Launch_This_App(classicClock_App); break;
-        // case 4: mtb_Launch_This_App(classicClock_App); break; 
-        // case 5: mtb_Launch_This_App(classicClock_App); break; 
-        // case 6: mtb_Launch_This_App(classicClock_App); break;
+        // case 1: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 2: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 3: mtb_Launch_This_App(calendarClock_App); break;
+        // case 4: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 5: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 6: mtb_Launch_This_App(calendarClock_App); break;
 
         default: ESP_LOGI(TAG, "No Apps to Lunch.\n");
             break;
@@ -712,14 +712,13 @@ void mtb_Audio_Stream_App_Lunch(uint16_t dAppNumber){
 //********NUMBER 10 */
 void mtb_sMedia_App_Lunch(uint16_t dAppNumber){
     switch(dAppNumber){
-        case 0: mtb_Launch_This_App(exampleWriteTextApp); break;
-        case 1: mtb_Launch_This_App(exampleDrawShapes_App); break;
-        case 2: mtb_Launch_This_App(exampleDrawImages_App); break; 
-        // case 3: mtb_Launch_This_App(classicClock_App); break; 
-        // case 4: mtb_Launch_This_App(classicClock_App); break;
-        // case 5: mtb_Launch_This_App(classicClock_App); break;
-        // case 6: mtb_Launch_This_App(classicClock_App); break;
-
+        // case 0: mtb_Launch_This_App(calendarClock_App); break;
+        // case 1: mtb_Launch_This_App(calendarClock_App); break;
+        // case 2: mtb_Launch_This_App(calendarClock_App); break;
+        // case 3: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 4: mtb_Launch_This_App(calendarClock_App); break;
+        // case 5: mtb_Launch_This_App(calendarClock_App); break;
+        // case 6: mtb_Launch_This_App(calendarClock_App); break;
         default: ESP_LOGI(TAG, "No Apps to Lunch.\n");
             break;
     }
@@ -728,13 +727,13 @@ void mtb_sMedia_App_Lunch(uint16_t dAppNumber){
 //********NUMBER 11 */
 void mtb_Miscellanous_App_Lunch(uint16_t dAppNumber){
     switch(dAppNumber){
-        // case 0: mtb_Launch_This_App(classicClock_App); break;
-        // case 1: mtb_Launch_This_App(classicClock_App); break;
-        // case 2: mtb_Launch_This_App(classicClock_App); break;
-        // case 3: mtb_Launch_This_App(classicClock_App); break; 
-        // case 4: mtb_Launch_This_App(classicClock_App); break;
-        // case 5: mtb_Launch_This_App(classicClock_App); break;
-        // case 6: mtb_Launch_This_App(classicClock_App); break;
+        // case 0: mtb_Launch_This_App(calendarClock_App); break;
+        // case 1: mtb_Launch_This_App(calendarClock_App); break;
+        // case 2: mtb_Launch_This_App(calendarClock_App); break;
+        // case 3: mtb_Launch_This_App(calendarClock_App); break; 
+        // case 4: mtb_Launch_This_App(calendarClock_App); break;
+        // case 5: mtb_Launch_This_App(calendarClock_App); break;
+        // case 6: mtb_Launch_This_App(calendarClock_App); break;
 
         default: ESP_LOGI(TAG, "No Apps to Lunch.\n");
             break;

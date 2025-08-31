@@ -10,6 +10,6 @@
 
 static const char classicClockAppRoute[] = "0/0";
 extern TaskHandle_t classicClock_Task_H;
-extern void classicClock_App_Task(void *arguments);
+extern void calendarClock_App_Task(void *arguments);
 
 #endif
