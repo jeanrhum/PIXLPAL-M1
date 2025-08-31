@@ -308,7 +308,7 @@ extern Mtb_Services* Audio_Listening_Sv;
 extern Mtb_Services* mtb_Status_Bar_Clock_Sv;             // USES PSRAM AS TASK STACK
 
 // All System Apps
-extern Mtb_Applications_FullScreen* firmwareUpdate_App;
+extern Mtb_Applications_FullScreen* usbOTA_Update_App;
 extern Mtb_Applications_FullScreen* otaUpdateApplication_App;
 
 // All User Apps
@@ -358,7 +358,7 @@ extern Mtb_Applications_FullScreen* audSpecAnalyzer_App;        // App Communica
 extern Mtb_Applications_StatusBar *spotify_App;                 // App Communication Route: 9/3
 
 // Example Apps
-extern Mtb_Applications_FullScreen* exampleWriteTextApp;        
+extern Mtb_Applications_FullScreen* exampleWriteText_App;        
 extern Mtb_Applications_StatusBar* exampleDrawShapes_App;          
 extern Mtb_Applications_FullScreen* exampleDrawImages_App;          
 extern Mtb_Applications_StatusBar* exampleEncoderBeep_App;               

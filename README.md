@@ -86,7 +86,7 @@ extern "C" void app_main(){
     mtb_Ble_Comm_Init();
 
     // Attempt OTA Update from USB Flash Drive
-    mtb_Launch_This_App(firmwareUpdate_App);
+    mtb_Launch_This_App(usbOTA_Update_App);
     while(Mtb_Applications::firmwareOTA_Status != pdFALSE) delay(1000);
 
     // Read the last executed App from NVS
@@ -98,7 +98,7 @@ extern "C" void app_main(){
 
     // Launch the Last Executed App or Launch a particular App after boot-up
     // mtb_General_App_Lunch(currentApp);
-    mtb_Launch_This_App(exampleEncoderBeep_App);
+    mtb_Launch_This_App(exampleWriteText_App);
 
     // Declare Variable for monitoring Free/Available internal SRAM
     size_t free_sram = 0;
@@ -130,7 +130,7 @@ extern "C" void app_main(){
 
 EXT_RAM_BSS_ATTR TaskHandle_t exampleWriteTextApp_Task_H = NULL;
 
-EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *exampleWriteTextApp = new Mtb_Applications_FullScreen(exampleWriteTextApp_Task, &exampleWriteTextApp_Task_H, "exampleWriteTextApp", 4096);
+EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *exampleWriteText_App = new Mtb_Applications_FullScreen(exampleWriteTextApp_Task, &exampleWriteTextApp_Task_H, "exampleWriteTextApp", 4096);
 
 void exampleWriteTextApp_Task(void* dApplication){
 // ****** Initialize the App Parameters
@@ -145,8 +145,9 @@ Mtb_FixedText_t exampleFixedText(24,15, Terminal8x12, GREEN);
 Mtb_ScrollText_t exampleScrollText (5, 40, 118, WHITE, 20, 1, Terminal6x8);
 
 // Write Fixed Text to display
-exampleFixedText.mtb_Write_String("Hello World");       // Write text in default color
+exampleFixedText.mtb_Write_String("Hello World."); // Write text in default color
 //exampleFixedText.mtb_Write_Colored_String(" in Color!", PURPLE);     // Write text in different color
+//dma_display->write("Test the text writing function");  // Write text without clearing previous text
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {
 // Scroll the ScrollText Variable on display every 15 seconds

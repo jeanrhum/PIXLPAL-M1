@@ -19,8 +19,8 @@
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include "mtb_nvs.h"
 
-#define STATIC_STYLE    1
-#define DYNAMIC_STYLE   0   
+#define FIXED_TEXT_STYLE    1
+#define SCROLL_TEXT_STYLE   0   
 
 #define MATRIX_WIDTH 128    // LED Matrix Display Width in pixels
 #define MATRIX_HEIGHT 64    // LED Matrix Display Height in pixels
@@ -162,7 +162,7 @@ class Mtb_FixedText_t : public Mtb_Static_Text_t {
 
     Mtb_FixedText_t();
     Mtb_FixedText_t(uint16_t x1, uint16_t y1, const uint8_t *font = Terminal6x8, uint16_t dColor = OLIVE_GREEN, uint16_t dBackGrndColor = BLACK) : Mtb_Static_Text_t(x1, y1, font){
-        textStyle = STATIC_STYLE;
+        textStyle = FIXED_TEXT_STYLE;
         color = dColor;
         backgroundColor = dBackGrndColor;
     }
@@ -206,7 +206,7 @@ class ScrollTextHelper_t : public Mtb_Static_Text_t {
     uint8_t ** scrollBuffer;
     virtual void mtb_Set_Pixel_Data(uint16_t, uint16_t);
     ScrollTextHelper_t();
-    ScrollTextHelper_t(uint16_t x1, uint16_t y1, const uint8_t *font = Terminal6x8) : Mtb_Static_Text_t(x1, y1, font) { textStyle = DYNAMIC_STYLE;}
+    ScrollTextHelper_t(uint16_t x1, uint16_t y1, const uint8_t *font = Terminal6x8) : Mtb_Static_Text_t(x1, y1, font) { textStyle = SCROLL_TEXT_STYLE;}
 };
 
     extern MatrixPanel_I2S_DMA *dma_display;

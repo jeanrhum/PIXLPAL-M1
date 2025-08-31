@@ -18,23 +18,12 @@
 
 static const char TAG[] = "MTB-GHOTA";
 
-    /* initialize our ghota config */
-    ghota_config_t ghconfig = {
-        "PIXLPAL-M1.bin",
-        "spiffs.bin",
-        "spiffs",
-        "api.github.com",
-        "Meterbit",
-        "MTB-F1",
-        1
-    };
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* otaUpdateTextTop = NULL;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* otaUpdateTextBot = NULL;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* otaUpdateTextBar = NULL;
 
 EXT_RAM_BSS_ATTR TaskHandle_t ota_Updating = NULL;
 EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *otaUpdateApplication_App = new Mtb_Applications_FullScreen(ota_Update_Task, &ota_Updating, "GHOTA Update");
-
-Mtb_FixedText_t* otaUpdateTextTop = new Mtb_FixedText_t(8, 39, Terminal8x12, GREEN);  //FREE THESE VARIABLES WHEN DONE WITH THE OTA APPLICATION
-Mtb_FixedText_t* otaUpdateTextBot = new Mtb_FixedText_t(8, 52, Terminal8x12, GREEN);
-Mtb_FixedText_t* otaUpdateTextBar = new Mtb_FixedText_t(105, 52, Terminal8x12, WHITE);
 
 SemaphoreHandle_t ota_Update_Sem = NULL; 
 
@@ -145,6 +134,21 @@ void ota_Update_Task(void* dApplication){
     Mtb_Applications::otaAppHolder = thisApp;
     Mtb_Applications::otaAppHolder->action_On_Prev_App = SUSPEND_PREVIOUS_APP;
 
+    /* initialize our ghota config */
+    ghota_config_t ghconfig = {
+        "PIXLPAL-M1.bin",
+        "spiffs.bin",
+        "spiffs",
+        "api.github.com",
+        "Meterbit",
+        "MTB-F1",
+        1
+    };
+
+    otaUpdateTextTop = new Mtb_FixedText_t(8, 39, Terminal8x12, GREEN);  //FREE THESE VARIABLES WHEN DONE WITH THE OTA APPLICATION
+    otaUpdateTextBot = new Mtb_FixedText_t(8, 52, Terminal8x12, GREEN);
+    otaUpdateTextBar = new Mtb_FixedText_t(105, 52, Terminal8x12, WHITE);
+
     /* initialize ghota. */
     ghota_client_handle_t *ghota_client = ghota_init(&ghconfig);
     if (ghota_client == NULL) {
@@ -176,6 +180,10 @@ void ota_Update_Task(void* dApplication){
     ghota_free(ghota_client);
 
     while(MTB_APP_IS_ACTIVE == pdTRUE) delay(10);
+
+    delete otaUpdateTextTop; otaUpdateTextTop = NULL;
+    delete otaUpdateTextBot; otaUpdateTextBot = NULL;
+    delete otaUpdateTextBar; otaUpdateTextBar = NULL;
 
     mtb_End_This_App(thisApp);// We are using this command, but this is an App not a service.
 }

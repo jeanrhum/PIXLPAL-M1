@@ -63,32 +63,32 @@ void showFBL_Fix_Stnd(JsonDocument &);
 void setFBL_Token(JsonDocument &);
 
 
-Mtb_CentreText_t* scoreLineLive;
-Mtb_CentreText_t* elapsedTimeLive;
-Mtb_ScrollText_t* moreDataScroll;
+EXT_RAM_BSS_ATTR Mtb_CentreText_t* scoreLineLive;
+EXT_RAM_BSS_ATTR Mtb_CentreText_t* elapsedTimeLive;
+EXT_RAM_BSS_ATTR Mtb_ScrollText_t* moreDataScroll;
 
-Mtb_CentreText_t* statsTitle;
+EXT_RAM_BSS_ATTR Mtb_CentreText_t* statsTitle;
 
-Mtb_CentreText_t* serialFixtures;
-Mtb_CentreText_t* dateFixtures;
-Mtb_CentreText_t* timeFixtures;
-Mtb_CentreText_t* vsFixtures;
+EXT_RAM_BSS_ATTR Mtb_CentreText_t* serialFixtures;
+EXT_RAM_BSS_ATTR Mtb_CentreText_t* dateFixtures;
+EXT_RAM_BSS_ATTR Mtb_CentreText_t* timeFixtures;
+EXT_RAM_BSS_ATTR Mtb_CentreText_t* vsFixtures;
 
-Mtb_FixedText_t* rankStandings1;
-Mtb_FixedText_t* teamStandings1;
-Mtb_FixedText_t* pointsStandings1;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* rankStandings1;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* teamStandings1;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* pointsStandings1;
 
-Mtb_FixedText_t* rankStandings2;
-Mtb_FixedText_t* teamStandings2;
-Mtb_FixedText_t* pointsStandings2;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* rankStandings2;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* teamStandings2;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* pointsStandings2;
 
-Mtb_FixedText_t* rankStandings3;
-Mtb_FixedText_t* teamStandings3;
-Mtb_FixedText_t* pointsStandings3;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* rankStandings3;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* teamStandings3;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* pointsStandings3;
 
-Mtb_FixedText_t* rankStandings4;
-Mtb_FixedText_t* teamStandings4;
-Mtb_FixedText_t* pointsStandings4;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* rankStandings4;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* teamStandings4;
+EXT_RAM_BSS_ATTR Mtb_FixedText_t* pointsStandings4;
 
 EXT_RAM_BSS_ATTR Mtb_Applications_StatusBar *liveFootbalScores_App = new Mtb_Applications_StatusBar(liveFootball_App_Task, &liveFootball_Task_H, "Live Football", 12288);
 
@@ -451,7 +451,6 @@ String processJsonCommand(uint8_t type, uint16_t leagueId) {
   // fetchAndPrintJson(path);
   return path;
 }
-
 
 
 bool fetchLiveMatchTeamLogos(SpiRamJsonDocument& doc, size_t matchIndex) {

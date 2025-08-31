@@ -19,7 +19,7 @@ extern "C" void app_main(){
     mtb_Ble_Comm_Init();
 
     // Attempt OTA Update from USB Flash Drive
-    mtb_Launch_This_App(firmwareUpdate_App);
+    mtb_Launch_This_App(usbOTA_Update_App);
     while(Mtb_Applications::firmwareOTA_Status != pdFALSE) delay(1000);
 
     // Read the last executed App from NVS
@@ -30,8 +30,8 @@ extern "C" void app_main(){
 
 
     // Launch the Last Executed App or Launch a particular App after boot-up
-    // mtb_General_App_Lunch(currentApp);
-    mtb_Launch_This_App(exampleEncoderBeep_App);
+    mtb_General_App_Lunch(currentApp);
+    //mtb_Launch_This_App(exampleWriteText_App);
 
     // Declare Variable for monitoring Free/Available internal SRAM
     size_t free_sram = 0;

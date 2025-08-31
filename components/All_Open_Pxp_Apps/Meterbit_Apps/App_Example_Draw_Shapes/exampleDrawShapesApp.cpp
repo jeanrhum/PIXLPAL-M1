@@ -31,7 +31,7 @@ dma_display->drawRoundRect(94, 16, 30, 40, 5, PINK);
 dma_display->fillRoundRect(97, 19, 24, 34, 5, ORANGE_PANTONE);
 // // // Draw a triangle with a different color
 // dma_display->fillScreen(GREEN_LIZARD); // Clear the screen before drawing
-// dma_display->write("The devil is in the details. ");
+
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {
 ESP_LOGI("ExampleDrawShapesApp", "Shapes drawn on the display.");

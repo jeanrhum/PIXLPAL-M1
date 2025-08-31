@@ -18,7 +18,7 @@ Crypto_Stat_t currentCryptoCurrency = {
     "btc",
     "usd",
     "/crypto/cryptIcon_1.png",
-    "Hello_API_Token",
+    "get free key @ https://coincap.io/api-key",
     30
 };
 
