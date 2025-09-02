@@ -218,7 +218,7 @@ bool Mtb_Applications::appRunner(){
         }
         //ESP_LOGI(TAG, "PSRAM APP CREATED.\n");
     }
-
+    ESP_LOGI(TAG, "Application %s is running on core %d\n", appName, xPortGetCoreID());
     return true; // Task creation successful
 }
 

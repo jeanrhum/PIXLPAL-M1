@@ -140,7 +140,7 @@ void exampleWriteTextApp_Task(void* dApplication){
 // End of App parameter initialization
 
 
-// Declare Fixed and Scroll Text Variables
+// Declare Fixed and Scroll Text Objects
 Mtb_FixedText_t exampleFixedText(24,15, Terminal8x12, GREEN);
 Mtb_ScrollText_t exampleScrollText (5, 40, 118, WHITE, 20, 1, Terminal6x8);
 

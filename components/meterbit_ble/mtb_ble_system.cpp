@@ -105,6 +105,22 @@ void system_Wifi_Radio(JsonDocument& dCommand){
 //**05*********************************************************************************************************************
 void system_Time_Zone(JsonDocument& dCommand){
   String success = "{\"pxp_command\": 5, \"response\": 1}";
+  String timeZone = dCommand["dTimeZone"].as<String>();
+  String cityName = dCommand["dCityName"].as<String>();
+
+  timeZone.replace("[", "");
+  timeZone.replace("]", "");
+
+  cityName.replace("[", "");
+  cityName.replace("]", "");
+
+  String notifyText = "TIME ZONE SET TO - " + cityName;
+  notifyText.toUpperCase();
+  statusBarNotif.mtb_Scroll_This_Text(notifyText, WHITE);
+
+  timeZone.toCharArray(ntp_TimeZone, sizeof(ntp_TimeZone));
+  mtb_Write_Nvs_Struct("ntp TimeZone", ntp_TimeZone, sizeof(ntp_TimeZone));
+  mtb_Start_This_Service(sntp_Time_Sv);
   bleSettingsComSend(mtb_System_Settings_Route, success);
 }
 //**06*********************************************************************************************************************
