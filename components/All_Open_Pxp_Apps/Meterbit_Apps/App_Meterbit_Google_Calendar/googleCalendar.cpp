@@ -19,6 +19,7 @@
 #include "googleAuth.h"
 #include "googleCalendar.h"
 #include "mtb_graphics.h"
+//#include "my_secret_keys.h"
 #include "pxp_secret_keys.h"
 
 
@@ -107,7 +108,7 @@ void  googleCal_App_Task(void* dApplication){
   
   googleCalendarRefreshTokener = String(userGoogleCal.refreshToken);
 
-  String accessToken = getAccessToken(CLIENT_ID, CLIENT_SECRET, googleCalendarRefreshTokener);
+  String accessToken = getAccessToken(googleClient_ID, googleClient_SECRET, googleCalendarRefreshTokener);
   if (accessToken.isEmpty()) {
     ESP_LOGI(TAG, "Unable to retrieve access token.\n");
   } else {

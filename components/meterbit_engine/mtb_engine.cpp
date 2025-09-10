@@ -358,16 +358,14 @@ if (direction == ROT_CLOCKWISE){
     ++deviceVolume;
     if(audio != nullptr) audio->setVolume(deviceVolume);
     mtb_Write_Nvs_Struct("dev_Volume", &deviceVolume, sizeof(uint8_t));
-    }
-    if(deviceVolume >= 21) do_beep(CLICK_BEEP);
-} else if(direction == ROT_COUNTERCLOCKWISE){
+    } else if(deviceVolume >= 21) do_beep(CLICK_BEEP);
+    } else if(direction == ROT_COUNTERCLOCKWISE){
     if(deviceVolume >= 1){
     --deviceVolume;
     if(audio != nullptr) audio->setVolume(deviceVolume);
     mtb_Write_Nvs_Struct("dev_Volume", &deviceVolume, sizeof(uint8_t));
+    } else if(deviceVolume <= 0) do_beep(CLICK_BEEP);
     }
-    if(deviceVolume <= 0) do_beep(CLICK_BEEP);
-}
     //ESP_LOGI(TAG, "Device Volume is: %d\n", deviceVolume);
 }
 

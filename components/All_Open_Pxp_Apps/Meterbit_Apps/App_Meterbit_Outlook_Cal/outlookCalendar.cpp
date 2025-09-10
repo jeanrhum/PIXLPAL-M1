@@ -19,11 +19,9 @@
 #include "outlookAuth.h"
 #include "outlookCalendar.h"
 #include "mtb_graphics.h"
+#include "pxp_secret_keys.h"
 
 static const char *TAG = "OUTLOOK_CAL";
-
-const String CLIENT_ID = "";
-const String CLIENT_SECRET = "";
 
 // === User Settings ===
 // Modify these flags to show/hide specific data
@@ -109,7 +107,7 @@ void  outlookCal_App_Task(void* dApplication){
   
   outlookCalendarRefreshTokener = String(userOutlookCal.refreshToken);
 
-  String accessToken = getAccessToken(CLIENT_ID, CLIENT_SECRET, outlookCalendarRefreshTokener);
+  String accessToken = getAccessToken(outlookClient_ID, outlookClient_SECRET, outlookCalendarRefreshTokener);
   if (accessToken.isEmpty()) {
     ESP_LOGI(TAG, "Unable to retrieve access token.\n");
   } else {

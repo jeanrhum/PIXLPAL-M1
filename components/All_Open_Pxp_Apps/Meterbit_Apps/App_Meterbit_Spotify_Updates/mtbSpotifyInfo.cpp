@@ -16,13 +16,13 @@
 #include "SpotifyAuth.h"
 #include "SpotifyPlayback.h"
 #include "mtbSpotifyInfo.h"
+//#include "my_secret_keys.h"
 #include "pxp_secret_keys.h"
 
 static const char *TAG = "PXP_SPOTIFY";
 
 char* spotify_root_ca;
 
-//static const char client_id[] = "insert your client ID here";     // Your client ID of your spotify APP
 //*************************************************************************************************** */
 
 Spotify_Data_t userSpotify = {
@@ -89,7 +89,7 @@ void  spotify_App_Task(void* dApplication){
   mtb_Read_Nvs_Struct("spotifyData", &userSpotify, sizeof(Spotify_Data_t));
   ESP_LOGI(TAG, "The refreshToken is: %s\n", userSpotify.refreshToken);
 
-  if (getAccessToken(client_id, userSpotify.refreshToken)) {
+  if (getAccessToken(spotifyClient_ID, userSpotify.refreshToken)) {
     getNowPlaying();
     //ESP_LOGI(TAG, "I'm ready to get the now playing song.\n");
   }

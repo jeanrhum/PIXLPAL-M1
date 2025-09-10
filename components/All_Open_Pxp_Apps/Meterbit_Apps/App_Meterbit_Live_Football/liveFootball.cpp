@@ -12,6 +12,7 @@
 #include "mtb_engine.h"
 #include "mtb_graphics.h"
 #include "mtb_buzzer.h"
+//#include "my_secret_keys.h"
 #include "pxp_secret_keys.h"
 
 static const char TAG[] = "LIVE_FOOTBALL";
@@ -154,7 +155,7 @@ void liveFootball_App_Task(void *dApplication){
         // Optional: stop here or repeat after a longer delay
         HTTPClient http;
         http.begin(client, fullUrl);
-        http.addHeader("x-apisports-key", API_KEY);
+        http.addHeader("x-apisports-key", api_fooball_token_key);
         int httpResponseCode = http.GET();
 
         if (httpResponseCode == 200){

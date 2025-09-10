@@ -6,6 +6,8 @@
 #include <FS.h>
 #include <LittleFS.h>
 #include "finnhub_Stats.h"
+//#include "my_secret_keys.h"
+#include "pxp_secret_keys.h"
 
 static const char TAG[] = "FINNHUB_STATS";
 
@@ -73,9 +75,11 @@ void finhubStats_App_Task(void* dApplication){
     Mtb_FixedText_t cPrice_diff_txt(67, 43, Terminal6x8, GREEN);
 //##############################################################################################################
     
+
+
     // Read stock symbols from the CSV file
     readStockSymbols(stockSymbolsFilePath, stockSymbols, stockCount, MAX_STOCKS);
-    
+    strcpy(currentStocks.apiToken, finnhubApiKey);
     //ESP_LOGI(TAG, "Found %d stock symbols:\n", stockCount);
     // for (int i = 0; i < stockCount; i++) {
     //     ESP_LOGI(TAG, "%s\n",stockSymbols[i].c_str());
@@ -125,7 +129,7 @@ while (MTB_APP_IS_ACTIVE == pdTRUE){
         int httpCode = http.GET();
         if (httpCode > 0){
             String payload = http.getString();
-            //ESP_LOGI(TAG, "\n\n Payload: %s \n\n", payload.c_str());
+            ESP_LOGI(TAG, "\n\n Payload: %s \n\n", payload.c_str());
 
             DeserializationError error = deserializeJson(doc, payload);
             if (error) {

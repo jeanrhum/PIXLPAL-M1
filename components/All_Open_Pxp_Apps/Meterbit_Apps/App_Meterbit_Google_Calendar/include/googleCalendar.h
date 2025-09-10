@@ -6,13 +6,8 @@
 #include "Arduino.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-// #include "encoder.h"
-// #include "button.h"
 
 static const char googleCalendarAppRoute[] = "2/0";
-
-// static const String CLIENT_ID = "insert your google cloud client id here";
-// static const String CLIENT_SECRET = "Insert your google cloud app secret here";
 
 struct GoogleCal_Data_t {
 char refreshToken[250] = {0};
