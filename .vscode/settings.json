@@ -107,5 +107,5 @@
     },
     "idf.flashType": "UART",
     "C_Cpp.errorSquiggles": "enabled",
-    "idf.port": "/dev/tty.usbmodem101"
+    "idf.port": "/dev/tty.usbmodem2101"
 }

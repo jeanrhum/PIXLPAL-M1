@@ -435,7 +435,7 @@ void mtb_App_Init(Mtb_Applications *thisApp, Mtb_Services* pointer_0, Mtb_Servic
 
 void mtb_Ble_App_Cmd_Respond_Success(const char* appRoute, uint8_t commandNumber, uint8_t response ){
     String jsonString;
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
 
     doc["pxp_command"] = commandNumber;
     doc["response"] = response;

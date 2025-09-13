@@ -186,6 +186,9 @@ void ota_Update_Task(void* dApplication){
     delete otaUpdateTextBot; otaUpdateTextBot = NULL;
     delete otaUpdateTextBar; otaUpdateTextBar = NULL;
 
+    vSemaphoreDelete(ota_Update_Sem);
+    ota_Update_Sem = NULL;
+
     mtb_End_This_App(thisApp);// We are using this command, but this is an App not a service.
 }
 

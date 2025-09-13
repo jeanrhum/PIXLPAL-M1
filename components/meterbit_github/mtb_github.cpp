@@ -194,48 +194,93 @@ void files2Download_Task(void* dService){
 	mtb_End_This_Service(thisService);
 }
 
-
+// Same signature as yours, but without substring churn in the folder creation
 bool mtb_Prepare_Flash_File_Path(const char* filePath) {
-  String path(filePath);
+    // If file exists (or any parent), we still ensure dirs exist for consistency
+    if (LittleFS.exists(filePath)) return true;
 
-  // If file already exists, no need to prepare directories
-  if (LittleFS.exists(path)) {
-    return true;
-  }
+    // Build dir path (everything up to last '/')
+    const char* lastSlash = strrchr(filePath, '/');
+    if (!lastSlash || lastSlash == filePath) return true; // root or no dir
 
-  // Extract directory path
-  int lastSlash = path.lastIndexOf('/');
-  if (lastSlash <= 0) {
-    // File is at root, nothing to create
-    return true;
-  }
+    // Copy dir path into a local buffer to null-terminate segments
+    char dirPath[256];
+    size_t dlen = static_cast<size_t>(lastSlash - filePath);
+    if (dlen >= sizeof(dirPath)) {
+        ESP_LOGI(TAG, "Path too long");
+        return false;
+    }
+    memcpy(dirPath, filePath, dlen);
+    dirPath[dlen] = '\0';
 
-  String dirPath = path.substring(0, lastSlash);
-  String subPath = "";
-
-  // Recursively create each folder
-  for (int i = 1; i < dirPath.length(); i++) {
-    if (dirPath.charAt(i) == '/') {
-      subPath = dirPath.substring(0, i);
-      if (!LittleFS.exists(subPath)) {
-        if (!LittleFS.mkdir(subPath)) {
-          ESP_LOGI(TAG, "Failed to create directory: %s\n", subPath.c_str());
-          return false;
+    // Create each intermediate segment
+    for (size_t i = 1; i < dlen; ++i) {
+        if (dirPath[i] == '/') {
+            char saved = dirPath[i];
+            dirPath[i] = '\0';
+            if (!LittleFS.exists(dirPath)) {
+                if (!LittleFS.mkdir(dirPath)) {
+                    ESP_LOGI(TAG, "Failed to create dir: %s", dirPath);
+                    dirPath[i] = saved;
+                    return false;
+                }
+            }
+            dirPath[i] = saved;
         }
-      }
     }
-  }
 
-  // Create final directory level if needed
-  if (!LittleFS.exists(dirPath)) {
-    if (!LittleFS.mkdir(dirPath)) {
-      ESP_LOGI(TAG, "Failed to create directory: %s\n", dirPath.c_str());
-      return false;
+    // Create final directory if needed
+    if (!LittleFS.exists(dirPath)) {
+        if (!LittleFS.mkdir(dirPath)) {
+            ESP_LOGI(TAG, "Failed to create dir: %s", dirPath);
+            return false;
+        }
     }
-  }
-
-  return true;
+    return true;
 }
+
+
+// bool mtb_Prepare_Flash_File_Path(const char* filePath) {
+//   String path(filePath);
+
+//   // If file already exists, no need to prepare directories
+//   if (LittleFS.exists(path)) {
+//     return true;
+//   }
+
+//   // Extract directory path
+//   int lastSlash = path.lastIndexOf('/');
+//   if (lastSlash <= 0) {
+//     // File is at root, nothing to create
+//     return true;
+//   }
+
+//   String dirPath = path.substring(0, lastSlash);
+//   String subPath = "";
+
+//   // Recursively create each folder
+//   for (int i = 1; i < dirPath.length(); i++) {
+//     if (dirPath.charAt(i) == '/') {
+//       subPath = dirPath.substring(0, i);
+//       if (!LittleFS.exists(subPath)) {
+//         if (!LittleFS.mkdir(subPath)) {
+//           ESP_LOGI(TAG, "Failed to create directory: %s\n", subPath.c_str());
+//           return false;
+//         }
+//       }
+//     }
+//   }
+
+//   // Create final directory level if needed
+//   if (!LittleFS.exists(dirPath)) {
+//     if (!LittleFS.mkdir(dirPath)) {
+//       ESP_LOGI(TAG, "Failed to create directory: %s\n", dirPath.c_str());
+//       return false;
+//     }
+//   }
+
+//   return true;
+// }
 
 
 bool mtb_Download_Online_Image_To_SPIFFS(const char* url, const char* pathInSPIFFS) {

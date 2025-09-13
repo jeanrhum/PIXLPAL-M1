@@ -30,7 +30,7 @@ void polygonFX_App_Task(void *dApplication){
 
     mtb_Read_Nvs_Struct("polygonFX", &polygonFX, sizeof(PolygonFX_t));
 
-    StaticJsonDocument<512> doc;
+    JsonDocument doc;
     char apiUrl[256];
     HTTPClient http;
     WiFiClientSecure client;

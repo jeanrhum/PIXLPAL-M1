@@ -50,7 +50,7 @@ void currencyExchange_App_Task(void* dApplication){
   time_t present = 0;
   if(changeDispCurrency_Sem == NULL) changeDispCurrency_Sem = xSemaphoreCreateBinary();
   if(currencyChangeTimer_H == NULL) currencyChangeTimer_H = xTimerCreate("CurrencyChange Timer", pdMS_TO_TICKS(currentCurrencies.currencyChangeInterval > 0 ? (currentCurrencies.currencyChangeInterval * 1000) : (30 * 1000)), true, NULL, currencyChange_TimerCallback);
-  StaticJsonDocument<3000> doc;
+  JsonDocument doc;
   Mtb_ScrollText_t moreCurrencyData (63, 54, 63, WHITE, 25, 1, Terminal6x8);
 
   Mtb_FixedText_t CurrencyID1_tag(63, 4, Terminal6x8, CYAN);

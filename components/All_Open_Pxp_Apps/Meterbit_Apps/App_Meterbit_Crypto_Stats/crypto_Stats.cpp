@@ -153,8 +153,7 @@ while (MTB_APP_IS_ACTIVE == pdTRUE) {
 
         if (httpResponseCode == 200) {
             String payload = http.getString();
-            JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, payload);
+            error = deserializeJson(doc, payload);
 
             if (!error && doc.containsKey("data")) {
                 JsonObject data = doc["data"];
@@ -201,12 +200,18 @@ while (MTB_APP_IS_ACTIVE == pdTRUE) {
 
         http.end();
 
-        while (cryptoDataRequestTim-- > 0 && MTB_APP_IS_ACTIVE && xSemaphoreTake(changeDispCrypto_Sem, 0) != pdTRUE) delay(1);
+        while (cryptoDataRequestTim--> 0 && MTB_APP_IS_ACTIVE && xSemaphoreTake(changeDispCrypto_Sem, 0) != pdTRUE) delay(1);
         if (cryptoDataRequestTim > 0) break;
     }
 
     moreCryptoData.mtb_Scroll_Active(STOP_SCROLL);
 }
+
+    // Clean up and free resources
+    xTimerDelete(cryptoChangeTimer_H, 0);
+    cryptoChangeTimer_H = NULL;
+    vSemaphoreDelete(changeDispCrypto_Sem);
+    changeDispCrypto_Sem = NULL;
 
   mtb_End_This_App(thisApp);
 }

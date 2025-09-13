@@ -6,7 +6,7 @@
 #include "mtb_littleFs.h"
 #include "mtb_ble.h"
 #include "esp_heap_caps.h"
-#include "exampleEncoderBeepApp.h"
+
 using namespace std;
 
 static const char TAG[] = "PXP-MAIN_PROG";
@@ -42,7 +42,7 @@ extern "C" void app_main(){
     free_sram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
 
     // Print the free SRAM size
-    ESP_LOGI(TAG, "############ Free Internal SRAM: %zu bytes\n", free_sram);
+    printf("############ Free Internal SRAM: %zu bytes\n", free_sram);
     //ESP_LOGI(TAG, "Memory: Free %dKiB Low: %dKiB\n", (int)xPortGetFreeHeapSize()/1024, (int)xPortGetMinimumEverFreeHeapSize()/1024);
 
     // delay 2 seconds

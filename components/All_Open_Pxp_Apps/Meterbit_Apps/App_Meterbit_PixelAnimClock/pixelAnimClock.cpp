@@ -52,9 +52,12 @@ void  pixAnimClock_App_Task(void* dApplication){
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
   thisApp->mtb_App_ButtonFn_ptr = pixelAnimChangeButton;
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setClockTitleAndColor, setPixAnimTheme, setPixAnimClkColors, requestNTP_Time);
+
   mtb_App_Init(thisApp, pixAnimClkGif_Sv);
   //************************************************************************************************************************ */
+  ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 0\n");
   mtb_Read_Nvs_Struct("Clock Cols", &clk_Updt, sizeof(Clock_Colors));
+  ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 1\n");
   Mtb_FixedText_t hr_min_Obj(52, 26, Terminal10x17, clk_Updt.hourMinColour);
   Mtb_FixedText_t sec_Obj(102, 26, Terminal6x8, clk_Updt.secColor);
   Mtb_FixedText_t am_Pm_Obj(102, 36, Terminal6x8, clk_Updt.meridiemColor);
@@ -84,8 +87,10 @@ void  pixAnimClock_App_Task(void* dApplication){
   headerText = new Mtb_CentreText_t(63, 9, Terminal10x17, YELLOW);
   headerTextScroll = new Mtb_ScrollText_t(2, 1, 124, WHITE, 30, 0xFFFF, Terminal10x17, 4000);
 
-
+  ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 2\n");
   mtb_Read_Nvs_Struct("pixAnimClk", &savedPixAnimClkSet, sizeof(PixAnimClkSettings_t));
+  ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 3\n");
+  
   printPixAnimClkThm(savedPixAnimClkSet.themeColor);
   if(strlen(savedPixAnimClkSet.headerText) < HEADER_TEXT_LIMIT){
     headerText->mtb_Write_Colored_String(savedPixAnimClkSet.headerText, savedPixAnimClkSet.headerTextColor, savedPixAnimClkSet.themeColor[0]);

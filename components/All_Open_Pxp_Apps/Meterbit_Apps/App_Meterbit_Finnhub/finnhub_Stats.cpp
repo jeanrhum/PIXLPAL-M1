@@ -25,13 +25,13 @@ Stocks_Stat_t currentStocks = {
 
 EXT_RAM_BSS_ATTR SemaphoreHandle_t changeDispStock_Sem = NULL;
 EXT_RAM_BSS_ATTR TimerHandle_t stockChangeTimer_H = NULL;
-int8_t stockIterate = 0;
+EXT_RAM_BSS_ATTR TaskHandle_t finhubStats_Task_H = NULL;
 
+int8_t stockIterate = 0;
 String stockSymbols[MAX_STOCKS];
 int stockCount = 0;
 static const char stockSymbolsFilePath[] = "/stocks/dStocks.csv";
 
-EXT_RAM_BSS_ATTR TaskHandle_t finhubStats_Task_H = NULL;
 void finhubStats_App_Task(void *);
 void readStockSymbols(const char *filename, String stockSymbols[], int &count, const int maxSymbols);
 
@@ -52,11 +52,13 @@ void finhubStats_App_Task(void* dApplication){
     mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(showParticularStock, add_RemoveStockSymbol, setStockChangeInterval, saveAPI_key);
     mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
     //************************************************************************************ */
+    ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 0.0\n");
     mtb_Read_Nvs_Struct("stocksStat", &currentStocks, sizeof(Stocks_Stat_t));
+    ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 0.1\n");
     time_t present = 0;
     if(changeDispStock_Sem == NULL) changeDispStock_Sem = xSemaphoreCreateBinary();
     if(stockChangeTimer_H == NULL) stockChangeTimer_H = xTimerCreate("stockChange Timer", pdMS_TO_TICKS(currentStocks.stockChangeInterval > 0 ? (currentStocks.stockChangeInterval * 1000) : (30 * 1000)), true, NULL, stockChange_TimerCallback);
-    StaticJsonDocument<3072> doc;
+    JsonDocument doc;
 
     Mtb_FixedText_t stockID_tag(40, 13, Terminal6x8, CYAN);
     Mtb_FixedText_t current_price_tag(40, 23, Terminal6x8, YELLOW);
@@ -74,8 +76,6 @@ void finhubStats_App_Task(void* dApplication){
     Mtb_FixedText_t priceChangePercent_txt(67, 33, Terminal6x8, YELLOW_GREEN);    
     Mtb_FixedText_t cPrice_diff_txt(67, 43, Terminal6x8, GREEN);
 //##############################################################################################################
-    
-
 
     // Read stock symbols from the CSV file
     readStockSymbols(stockSymbolsFilePath, stockSymbols, stockCount, MAX_STOCKS);
@@ -84,7 +84,6 @@ void finhubStats_App_Task(void* dApplication){
     // for (int i = 0; i < stockCount; i++) {
     //     ESP_LOGI(TAG, "%s\n",stockSymbols[i].c_str());
     // }
-
     // If no symbols are found, write default symbols to the file
     if (stockCount == 0) {
         File file = LittleFS.open(stockSymbolsFilePath, "w");
@@ -113,19 +112,17 @@ static HTTPClient http;
 
 while (MTB_APP_IS_ACTIVE == pdTRUE){
     snprintf(apiUrl, sizeof(apiUrl), "https://finnhub.io/api/v1/quote?symbol=%s&token=%s", currentStocks.stockID.c_str(), currentStocks.apiToken);
-    //ESP_LOGI(TAG, "OUR FINAL URL IS: %s \n", apiUrl.c_str());
+    //ESP_LOGI(TAG, "OUR FINAL URL IS: %s \n", apiUrl);
     //******************************************************************************************************* */
     mtb_Download_Github_Strg_File("stocks_Icons/_" + currentStocks.stockID +".png", String(currentStocks.stockFilePath));
 
     while ((Mtb_Applications::internetConnectStatus != true) && (MTB_APP_IS_ACTIVE == pdTRUE)) delay(1000);
         
-        if (http.connected()) { http.end(); } // Cleanup before starting a new request
-
+    if (http.connected()) { http.end(); } // Cleanup before starting a new request
     //************************************************************************************** */
     while (MTB_APP_IS_ACTIVE == pdTRUE){
         int16_t stockDataRequestTim = 500;
         http.begin(apiUrl); // Edit your key here
-        // http.addHeader("x-rapidapi-key", "783152efb6mshac636e27a8f24bep10fb3ajsn5ae13bc4f722");
         int httpCode = http.GET();
         if (httpCode > 0){
             String payload = http.getString();
@@ -179,71 +176,120 @@ while (MTB_APP_IS_ACTIVE == pdTRUE){
     }
         moreStockData.mtb_Scroll_Active(STOP_SCROLL);
 }
+
+    // Clean up and free resources
+    xTimerDelete(stockChangeTimer_H, 0);
+    stockChangeTimer_H = NULL;
+    vSemaphoreDelete(changeDispStock_Sem);
+    changeDispStock_Sem = NULL;
+
   mtb_End_This_App(thisApp);
 }
 //##############################################################################################################
 
-void readStockSymbols(const char* filename, String stockSymbols[], int& count, const int maxSymbols){
-    
-    if (mtb_Prepare_Flash_File_Path(filename)){
-        ESP_LOGI(TAG, "File path prepared successfully: %s\n", filename);
-    }
-    else {
-        ESP_LOGI(TAG, "Failed to prepare file path.\n");
-        count = 0;
-        return;
-    }
-    // Check if the file exists
-    if (!LittleFS.exists(filename)) {
-        // Create a new file if it doesn't exist
-        File file = LittleFS.open(filename, "w");
-        if (!file) {
-            ESP_LOGI(TAG, "Failed to create file.\n");
-            count = 0;
-            return;
-        }
-        file.close();
-        ESP_LOGI(TAG, "File created successfully.\n");
-        count = 0;
-        return;
-    }
-    
-    // Open the file for reading
-    File file = LittleFS.open(filename, "r");
-    if (!file) {
-        ESP_LOGI(TAG, "Failed to open file.\n");
-        count = 0;
-        return;
-    }
-    
-    // Read the entire content of the file
-    String content = file.readString();
-    file.close();
-    
-    // Parse the CSV data to extract stock symbols
-    int start = 0;
+// Streaming CSV reader: avoids readString()/substring(), minimizes heap churn.
+void readStockSymbols(const char* filename,
+                                String stockSymbols[], int& count, const int maxSymbols)
+{
     count = 0;
-    content.trim();  // Remove leading and trailing whitespace
-    while (count < maxSymbols && start < content.length()) {
-        int commaIndex = content.indexOf(',', start);
-        if (commaIndex == -1) {
-            // No more commas; read until the end
-            String symbol = content.substring(start);
-            symbol.trim();
-            if (symbol.length() > 0) {
-                stockSymbols[count++] = symbol;
-            }
-            break;
+
+    // Ensure parent directories exist (uses Arduino LittleFS helpers below)
+    if (!mtb_Prepare_Flash_File_Path(filename)) {
+        ESP_LOGI(TAG, "Path prep failed");
+        return;
+    }
+
+    // Create file if it doesn't exist (empty file → 0 symbols)
+    if (!LittleFS.exists(filename)) {
+        File nf = LittleFS.open(filename, "w");
+        if (nf) nf.close();
+        return;
+    }
+
+    File f = LittleFS.open(filename, "r");
+    if (!f) return;
+
+    String token;             // reuse one buffer (kept small by frequent trims)
+    token.reserve(32);        // pre-reserve to reduce reallocs
+
+    while (count < maxSymbols && f.available()) {
+        int c = f.read();
+        if (c == ',' || c == '\n' || c == '\r' || c < 0) {
+            token.trim();
+            if (token.length()) stockSymbols[count++] = token;
+            token = ""; // reuse buffer
         } else {
-            String symbol = content.substring(start, commaIndex);
-            symbol.trim();
-            if (symbol.length() > 0) {
-                stockSymbols[count++] = symbol;
-            }
-            start = commaIndex + 1;
+            token += (char)c;
         }
     }
+
+    // last token if file didn't end with comma/newline
+    token.trim();
+    if (count < maxSymbols && token.length()) stockSymbols[count++] = token;
+
+    f.close();
 }
+
+// void readStockSymbols(const char* filename, String stockSymbols[], int& count, const int maxSymbols){
+    
+//     if (mtb_Prepare_Flash_File_Path(filename)){
+//         ESP_LOGI(TAG, "File path prepared successfully: %s\n", filename);
+//     } else {
+//         ESP_LOGI(TAG, "Failed to prepare file path.\n");
+//         count = 0;
+//         return;
+//     }
+//     // Check if the file exists
+//     if (!LittleFS.exists(filename)) {
+//         // Create a new file if it doesn't exist
+//         File file = LittleFS.open(filename, "w");
+//         if (!file) {
+//             ESP_LOGI(TAG, "Failed to create file.\n");
+//             count = 0;
+//             return;
+//         }
+//         file.close();
+//         ESP_LOGI(TAG, "File created successfully.\n");
+//         count = 0;
+//         return;
+//     }
+    
+//     // Open the file for reading
+//     File file = LittleFS.open(filename, "r");
+//     if (!file) {
+//         ESP_LOGI(TAG, "Failed to open file.\n");
+//         count = 0;
+//         return;
+//     }
+    
+//     // Read the entire content of the file
+//     String content = file.readString();
+//     file.close();
+    
+//     // Parse the CSV data to extract stock symbols
+//     int start = 0;
+//     count = 0;
+//     content.trim();  // Remove leading and trailing whitespace
+//     while (count < maxSymbols && start < content.length()) {
+//         int commaIndex = content.indexOf(',', start);
+//         if (commaIndex == -1) {
+//             // No more commas; read until the end
+//             String symbol = content.substring(start);
+//             symbol.trim();
+//             if (symbol.length() > 0) {
+//                 stockSymbols[count++] = symbol;
+//             }
+//             break;
+//         } else {
+//             String symbol = content.substring(start, commaIndex);
+//             symbol.trim();
+//             if (symbol.length() > 0) {
+//                 stockSymbols[count++] = symbol;
+//             }
+//             start = commaIndex + 1;
+//         }
+//     }
+// }
 
 void buttonChangeDisplayStock(button_event_t button_Data){
             switch (button_Data.type){
