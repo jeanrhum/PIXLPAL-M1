@@ -48,5 +48,4 @@ extern "C" void app_main(){
     // delay 2 seconds
     delay(2000);
      }
-
 }

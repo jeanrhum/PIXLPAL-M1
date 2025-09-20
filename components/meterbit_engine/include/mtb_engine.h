@@ -24,9 +24,6 @@
 
 extern QueueHandle_t clock_Update_Q;
 extern TaskHandle_t appLuncher_Task_H;
-extern void appLuncherTask(void *);
-extern void freeServAndAppPSRAM_Task(void *);
-extern void nvsAccessTask(void *);
 extern QueueHandle_t appLuncherQueue;
 extern QueueHandle_t freeServAndAppPSRAM_Q;
 extern QueueHandle_t nvsAccessQueue;
@@ -51,6 +48,11 @@ struct NvsAccessParams_t{
   void* struct_ptr;
   size_t struct_size;
 };
+
+extern void appLuncherTask(void *);
+extern void freeServAndAppPSRAM_Task(void *);
+extern void nvsAccessTask(void *);
+
 //**************************************************************************************************************************
 
 extern Mtb_CurrentApp_t currentApp;
@@ -213,7 +215,6 @@ public:
     //virtual 
 };
 
-
 // Full Screen Applications and Status Bar Applications
 class Mtb_Applications_FullScreen : public Mtb_Applications{            
     public:
@@ -223,7 +224,6 @@ class Mtb_Applications_FullScreen : public Mtb_Applications{
             fullScreen = true;
         }
 };
-
 
 // Status Bar Applications
 class Mtb_Applications_StatusBar : public Mtb_Applications{
@@ -242,8 +242,6 @@ extern void mtb_App_Init(Mtb_Applications*, Mtb_Services* pointer_0 = nullptr, M
                                  Mtb_Services* pointer_3 = nullptr, Mtb_Services* pointer_4 = nullptr, Mtb_Services* pointer_5 = nullptr,
                                  Mtb_Services* pointer_6 = nullptr, Mtb_Services* pointer_7 = nullptr, Mtb_Services* pointer_8 = nullptr, 
                                 Mtb_Services* pointer_9 = nullptr);
-
-
 
 // App Parser Functions
 extern void mtb_Launch_This_App(Mtb_Applications* dApp, Mtb_Do_Prev_App_t do_Prv_App = DESTROY_PREVIOUS_APP);
