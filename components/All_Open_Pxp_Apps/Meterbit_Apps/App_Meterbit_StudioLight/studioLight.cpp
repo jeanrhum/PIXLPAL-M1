@@ -6,51 +6,68 @@
 #include <FS.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include "mtb_graphics.h"
 #include "mtb_nvs.h"
 #include "mtb_engine.h"
 #include "studioLight.h"
+#include "mtb_buzzer.h"
+
 
 StudioLight_Data_t studioLightsInfo;
+EXT_RAM_BSS_ATTR SemaphoreHandle_t studioLightMode_Sem_H = NULL;
 
 EXT_RAM_BSS_ATTR TaskHandle_t studioLight_Task_H = NULL;
 void studioLight_App_Task(void *);
 // supporting functions
 
 // button and encoder functions
-void selectStudioLightPatternButton(button_event_t button_Data);
+void selectStudioLightColorButton(button_event_t button_Data);
 
 // bluetooth functions
 void setStudioLightColors(JsonDocument&);
 
-EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *studioLight_App = new Mtb_Applications_FullScreen(studioLight_App_Task, &studioLight_Task_H, "studioLight", 10240);
+EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *studioLight_App = new Mtb_Applications_FullScreen(studioLight_App_Task, &studioLight_Task_H, "studioLight", 4096);
 
 void studioLight_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
-  thisApp->mtb_App_ButtonFn_ptr = selectStudioLightPatternButton;
+  thisApp->mtb_App_ButtonFn_ptr = selectStudioLightColorButton;
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setStudioLightColors);
   mtb_App_Init(thisApp);
   //************************************************************************************ */
+    if(studioLightMode_Sem_H == NULL) studioLightMode_Sem_H = xSemaphoreCreateBinary();
+
   mtb_Read_Nvs_Struct("studioLight", &studioLightsInfo, sizeof(StudioLight_Data_t));
 
-while (MTB_APP_IS_ACTIVE == pdTRUE) {
 
-    while ((Mtb_Applications::internetConnectStatus != true) && (MTB_APP_IS_ACTIVE == pdTRUE)) delay(1000);
+    while (MTB_APP_IS_ACTIVE == pdTRUE) {
+    if(xSemaphoreTake(studioLightMode_Sem_H, pdMS_TO_TICKS(100)) == pdTRUE){
+            if(studioLightsInfo.studioLightColorMode == FULLSCREEN_MODE){
+                dma_display->fillScreen(studioLightsInfo.studioLightColor[0]);
+            }else if (studioLightsInfo.studioLightColorMode == HALFSCREEN_MODE){
+                dma_display->fillRect(0, 0, MATRIX_WIDTH/2, MATRIX_HEIGHT, studioLightsInfo.studioLightColor[0]);
+                dma_display->fillRect(MATRIX_WIDTH/2, 0, MATRIX_WIDTH/2, MATRIX_HEIGHT, studioLightsInfo.studioLightColor[1]);
+            }else if (studioLightsInfo.studioLightColorMode == CYCLE_MODE){
+                static uint8_t colorIndex = 0;
+                dma_display->fillScreen(studioLightsInfo.studioLightColor[colorIndex]);
+                colorIndex++;
+                if(colorIndex >= 10) colorIndex = 0;
+            }
+        }
 
-
-    while (MTB_APP_IS_ACTIVE == pdTRUE) {}
-
-}
+    }
 
   mtb_End_This_App(thisApp);
 }
 
-void selectStudioLightPatternButton(button_event_t button_Data){
+void selectStudioLightColorButton(button_event_t button_Data){
             switch (button_Data.type){
             case BUTTON_RELEASED:
             break;
 
             case BUTTON_PRESSED:
+            xSemaphoreGive(studioLightMode_Sem_H);
+            do_beep(CLICK_BEEP);
             break;
 
             case BUTTON_PRESSED_LONG:

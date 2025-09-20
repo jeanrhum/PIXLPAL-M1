@@ -9,13 +9,17 @@
 // #include "encoder.h"
 // #include "button.h"
 
+#define FULLSCREEN_MODE     0
+#define HALFSCREEN_MODE     1
+#define CYCLE_MODE         2
+
 static const char studioLightAppRoute[] = "6/0";
 
 struct StudioLight_Data_t {
 uint16_t studioLightBrightness = 100; // 0-255
 uint16_t studioLightChangeSpeed = 100;      // 0-255
 uint16_t studioLightColor[10] = {WHITE, PURPLE, GREEN, YELLOW, BLUE, MAGENTA, PALE_AZURE, EBONY, SWEET_BROWN, SKOBELOFF}; // 
-uint8_t studioLightColorPattern = 0; 
+uint8_t studioLightColorMode = FULLSCREEN_MODE; 
 };
 
 extern StudioLight_Data_t studioLightsInfo;

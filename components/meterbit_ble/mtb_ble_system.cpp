@@ -117,7 +117,7 @@ void system_Time_Zone(JsonDocument& dCommand){
   String notifyText = "TIME ZONE SET TO - " + cityName;
   notifyText.toUpperCase();
   statusBarNotif.mtb_Scroll_This_Text(notifyText, WHITE);
-  statusBarNotif.mtb_Scroll_This_Text("TIME CHANGE WILL TAKE EFFECT IN A FEW SECONDS.", YELLOW);
+  statusBarNotif.mtb_Scroll_This_Text("CHANGES APPLY IN 5 SEC.", YELLOW);
 
   timeZone.toCharArray(ntp_TimeZone, sizeof(ntp_TimeZone));
   mtb_Write_Nvs_Struct("ntp TimeZone", ntp_TimeZone, sizeof(ntp_TimeZone));

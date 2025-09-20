@@ -52,6 +52,7 @@ The firmware demonstrates how to build network-enabled visual applications such 
 
 **Build Requirements:**
 - **ESP-IDF v5.3.2** installed on macOS or Windows (via VS Code).  
+  - [Step by step installation for Windows, MacOS X, Linux Ubuntu](https://randomnerdtutorials.com/programming-esp32-esp-idf-vs-code/)
   - [ESP-IDF VS Code Installation Guide](https://github.com/espressif/vscode-esp-idf-extension)  
   - [Windows Installation Video](https://www.youtube.com/watch?v=D0fRc4XHBNk)  
 
