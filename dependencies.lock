@@ -266,7 +266,7 @@ dependencies:
       type: service
     version: 1.2.0
   espressif/esp_secure_cert_mgr:
-    component_hash: 421cb5608b9c06c3747be15edde72d67f7f5c899dbabbcd836742df9af0e9134
+    component_hash: 47589860736b456608035b06d88e6a5dab566419fa8737a76a4f33c611ec539b
     dependencies:
     - name: idf
       require: private
@@ -274,7 +274,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 2.6.1
+    version: 2.7.0
   espressif/esp_tinyusb:
     component_hash: 9382e15aaacd3f29e2de2360eb266ef1d7e5ebf4fdefbeaebe146e471d341656
     dependencies:
@@ -370,7 +370,7 @@ dependencies:
       require: private
       version: '>=5.0'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     targets:
     - esp32s2
@@ -392,11 +392,18 @@ dependencies:
     - esp32p4
     version: 1.0.3
   espressif/usb_host_msc:
-    component_hash: efbf44743b0f1f1f808697a671064531ae4661ccbce84632637261f8f670b375
+    component_hash: 865a651c08d0bf2ce255a369778375e493df588dfb0720c3d97e12bfdcc4c0f9
     dependencies:
     - name: idf
       require: private
       version: '>=4.4.1'
+    - name: espressif/usb
+      registry_url: https://components.espressif.com
+      require: public
+      rules:
+      - if: idf_version >=6.0
+      - if: target not in ["linux"]
+      version: ^1.0.0
     source:
       registry_url: https://components.espressif.com/
       type: service
@@ -404,7 +411,35 @@ dependencies:
     - esp32s2
     - esp32s3
     - esp32p4
-    version: 1.1.3
+    - esp32h4
+    version: 1.1.4
+  espressif/usb_host_uac:
+    component_hash: fb07c865a847612743d23e3064d9281d9702fda354488b8a5568bac41528cf32
+    dependencies:
+    - name: espressif/cmake_utilities
+      registry_url: https://components.espressif.com
+      require: private
+      version: 0.5.*
+    - name: idf
+      require: private
+      version: '>=4.4'
+    - name: espressif/usb
+      registry_url: https://components.espressif.com
+      require: public
+      rules:
+      - if: idf_version >=6.0
+      - if: target not in ["linux"]
+      version: ^1.0.0
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32s2
+    - esp32s3
+    - esp32p4
+    - esp32h4
+    - linux
+    version: 1.3.1
   idf:
     source:
       type: idf
@@ -442,10 +477,12 @@ direct_dependencies:
 - espressif/network_provisioning
 - espressif/qrcode
 - espressif/rmaker_common
+- espressif/tinyusb
 - espressif/usb_host_hid
 - espressif/usb_host_msc
+- espressif/usb_host_uac
 - idf
 - joltwallet/littlefs
-manifest_hash: 7868b9b9310e5763bf1a181962159f691fce3ed30fb107ef04090b573252a7a4
+manifest_hash: 92c52f777e654ef071ea01cc8bda0d354440368cd2352a6b76961de0df16f8e3
 target: esp32s3
 version: 2.0.0

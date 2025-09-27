@@ -30,8 +30,6 @@ void liveFootball_App_Task(void *);
 // supporting functions
 
 
-void onTimerCallback(TimerHandle_t xTimer);
-void inboundMatchTimer(time_t targetTimestamp);
 String processJsonCommand(uint8_t type = 0, uint16_t leagueId = 39);
 
 bool fetchLiveMatchTeamLogos(SpiRamJsonDocument&, size_t matchIndex = 0);

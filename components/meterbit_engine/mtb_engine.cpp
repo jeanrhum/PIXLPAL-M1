@@ -109,7 +109,7 @@ void mtb_Start_This_Service(Mtb_Services* dService){
         dService->service_is_Running = pdTRUE;
         if(dService->usePSRAM_Stack == pdFALSE) {
             result = xTaskCreatePinnedToCore(dService->service, dService->serviceName, dService->stackSize, dService, dService->servicePriority, dService->serviceT_Handle_ptr, dService->serviceCore);
-            if(result == pdPASS) ESP_LOGW(TAG, "Task %s successfully launched\n", dService->serviceName);
+            if(result == pdPASS) ESP_LOGI(TAG, "Task %s successfully launched\n", dService->serviceName);
             else ESP_LOGE(TAG, "Task %s failed to launch successful\n", dService->serviceName);
         } else {
             dService->task_stack = (StackType_t *)heap_caps_malloc(dService->stackSize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);

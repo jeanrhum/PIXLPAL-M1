@@ -80,11 +80,13 @@ extern RawAudioData AudioSamplesTransport;
 
 extern TimerHandle_t showRandomPatternTimer_H;
 extern TaskHandle_t audioProcessing_Task_H;
+extern TaskHandle_t usbSpeakerProcess_Task_H;
 extern QueueHandle_t audioProcessing_Q_H;
 extern QueueHandle_t audioTextInfo_Q;
 extern SemaphoreHandle_t dac_Start_Sem_H;
 
 extern void audioProcessing_Task(void *params);
+extern void usbSpeakerProcess_Task(void *params);
 extern void audioVisualizer();
 //extern esp_err_t _audio_player_write_fn(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms);
 

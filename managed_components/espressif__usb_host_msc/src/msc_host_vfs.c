@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -52,6 +52,18 @@ static esp_err_t msc_format_storage(size_t block_size, size_t allocation_size, c
     return ESP_OK;
 }
 
+esp_err_t msc_host_vfs_format(msc_host_device_handle_t device, const esp_vfs_fat_mount_config_t *mount_config, const msc_host_vfs_handle_t vfs_handle)
+{
+    MSC_RETURN_ON_INVALID_ARG(device);
+    MSC_RETURN_ON_INVALID_ARG(mount_config);
+    MSC_RETURN_ON_INVALID_ARG(vfs_handle);
+
+    size_t block_size = ((msc_device_t *)device)->disk.block_size;
+    size_t alloc_size = mount_config->allocation_unit_size;
+
+    return msc_format_storage(block_size, alloc_size, vfs_handle->drive);
+}
+
 static void dealloc_msc_vfs(msc_host_vfs_t *vfs)
 {
     free(vfs->base_path);
@@ -89,7 +101,16 @@ esp_err_t msc_host_vfs_register(msc_host_device_handle_t device,
     MSC_GOTO_ON_FALSE( vfs->base_path = strdup(base_path), ESP_ERR_NO_MEM );
     vfs->pdrv = pdrv;
 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
+    esp_vfs_fat_conf_t conf = {
+        .base_path = base_path,
+        .fat_drive = drive,
+        .max_files = mount_config->max_files,
+    };
+    MSC_GOTO_ON_ERROR( esp_vfs_fat_register_cfg(&conf, &fs) );
+#else
     MSC_GOTO_ON_ERROR( esp_vfs_fat_register(base_path, drive, mount_config->max_files, &fs) );
+#endif
 
     FRESULT fresult = f_mount(fs, drive, 1);
 
@@ -110,10 +131,10 @@ fail:
     if (diskio_registered) {
         ff_diskio_unregister(pdrv);
     }
-    esp_vfs_fat_unregister_path(base_path);
     if (fs) {
         f_mount(NULL, drive, 0);
     }
+    esp_vfs_fat_unregister_path(base_path);
     dealloc_msc_vfs(vfs);
     return ret;
 }

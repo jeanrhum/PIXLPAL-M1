@@ -1,4 +1,9 @@
-## 1.1.3 
+## 1.1.4
+
+- Added public API support for formatting
+- Added support for ESP32-H4
+
+## 1.1.3
 
 - Implemented request sense, to get sense data from USB device in case of an error
 - Fixed initialization of some flash drives, which require more time to initialize (https://github.com/espressif/esp-idf/issues/14319)
