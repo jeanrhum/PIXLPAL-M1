@@ -1,4 +1,4 @@
 idf_component_register(SRC_DIRS .
                        INCLUDE_DIRS .
-                       REQUIRES unity usb usb_host_hid esp_tinyusb
+                       REQUIRES unity
                        WHOLE_ARCHIVE)

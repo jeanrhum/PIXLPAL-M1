@@ -1,19 +1,17 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdint.h>
-#include "sdkconfig.h"
 #include "tinyusb.h"
+#include "tinyusb_default_config.h"
 #include "class/hid/hid_device.h"
-#include "esp_idf_version.h"
 #include "hid_mock_device.h"
 
 static tusb_iface_count_t tusb_iface_count = 0;
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 /************* TinyUSB descriptors ****************/
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
 
@@ -75,10 +73,28 @@ static const uint8_t *hid_configuration_descriptor_list[TUSB_IFACE_COUNT_MAX] = 
     hid_configuration_descriptor_one_iface,
     hid_configuration_descriptor_two_ifaces
 };
-#endif // // esp idf >= v5.0.0
+
+/**
+ * @brief Device qualifier
+ *
+ * This is a simple device qualifier for HS devices
+ */
+
+#if (TUD_OPT_HIGH_SPEED)
+static const tusb_desc_device_qualifier_t device_qualifier = {
+    .bLength = sizeof(tusb_desc_device_qualifier_t),
+    .bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER,
+    .bcdUSB = 0x0200,
+    .bDeviceClass = TUSB_CLASS_MISC,
+    .bDeviceSubClass = MISC_SUBCLASS_COMMON,
+    .bDeviceProtocol = MISC_PROTOCOL_IAD,
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
+    .bNumConfigurations = 0x01,
+    .bReserved = 0
+};
+#endif // TUD_OPT_HIGH_SPEED
 /********* TinyUSB HID callbacks ***************/
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 // Invoked when received GET HID REPORT DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance)
@@ -95,12 +111,6 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance)
     }
     return NULL;
 }
-#endif // esp idf >= v5.0.0
-
-#if ((ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)) && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)))
-#define HID_ITF_PROTOCOL_KEYBOARD HID_PROTOCOL_KEYBOARD
-#define HID_ITF_PROTOCOL_MOUSE    HID_PROTOCOL_MOUSE
-#endif // 4.4.0 <= esp idf < v5.0.0
 
 /**
  * @brief Get Keyboard report
@@ -177,7 +187,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 void hid_mock_device(tusb_iface_count_t iface_count)
 {
     if (iface_count > TUSB_IFACE_COUNT_MAX) {
-        printf("UHID mock device, wrong iface_count paramteter (%d)\n",
+        printf("HID mock device, wrong iface_count parameter (%d)\n",
                iface_count);
         return;
     }
@@ -185,15 +195,14 @@ void hid_mock_device(tusb_iface_count_t iface_count)
     // Global Interfaces count value
     tusb_iface_count = iface_count;
 
-    const tinyusb_config_t tusb_cfg = {
-        .external_phy = false,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .device_descriptor = NULL,
-        .string_descriptor = hid_string_descriptor,
-        .string_descriptor_count = sizeof(hid_string_descriptor) / sizeof(hid_string_descriptor[0]),
-        .configuration_descriptor = hid_configuration_descriptor_list[tusb_iface_count],
-#endif // esp idf >= v5.0.0
-    };
+    tinyusb_config_t tusb_cfg = TINYUSB_DEFAULT_CONFIG();
+    tusb_cfg.descriptor.full_speed_config = hid_configuration_descriptor_list[tusb_iface_count];
+#if (TUD_OPT_HIGH_SPEED)
+    tusb_cfg.descriptor.high_speed_config = hid_configuration_descriptor_list[tusb_iface_count];
+    tusb_cfg.descriptor.qualifier = &device_qualifier;
+#endif // TUD_OPT_HIGH_SPEED
+    tusb_cfg.descriptor.string = hid_string_descriptor;
+    tusb_cfg.descriptor.string_count = sizeof(hid_string_descriptor) / sizeof(hid_string_descriptor[0]);
 
     ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
 

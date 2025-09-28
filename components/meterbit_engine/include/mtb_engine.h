@@ -286,7 +286,7 @@ extern Mtb_Services* svgOnlineImageDrawer_Sv;       // USES PSRAM AS TASK STACK
 extern Mtb_Services *gitHubFileDwnload_Sv;
 
 extern Mtb_Services* mtb_Dac_N_Mic_Sv;
-extern Mtb_Services* Usb_Audio_Sv;
+extern Mtb_Services* mtb_Usb_Audio_Sv;
 // extern Mtb_Services* usb_Speaker_Sv;
 // extern Mtb_Services* bleControl_Sv;
 

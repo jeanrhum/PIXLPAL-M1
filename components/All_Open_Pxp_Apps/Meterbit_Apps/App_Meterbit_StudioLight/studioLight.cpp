@@ -69,7 +69,7 @@ void selectStudioLightColorButton(button_event_t button_Data){
             case BUTTON_PRESSED:
             //xSemaphoreGive(studioLightMode_Sem_H);
             do_beep(CLICK_BEEP);
-            mtb_Start_This_Service(Usb_Audio_Sv);
+            mtb_Start_This_Service(mtb_Usb_Audio_Sv);
             break;
 
             case BUTTON_PRESSED_LONG:
