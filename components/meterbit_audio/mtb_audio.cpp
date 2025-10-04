@@ -91,6 +91,7 @@ void audioProcessing_Task(void *d_Service){
   //****** DAC CODE LOOP START HERE ************************************************************************************************************ */
     if(xSemaphoreTake(dac_Start_Sem_H, pdMS_TO_TICKS(25)) == pdTRUE){
     audio = new Audio();
+    delay(100);                                 // wait for the audio object to be successfully created.
     audio->setConnectionTimeout(65000, 65000);
 
     switch(audioOutMode){

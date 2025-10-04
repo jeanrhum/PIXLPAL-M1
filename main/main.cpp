@@ -28,7 +28,6 @@ extern "C" void app_main(){
     // Initialize Wifi
     mtb_Wifi_Init();
 
-
     // Launch the Last Executed App or Launch a particular App after boot-up
     mtb_General_App_Lunch(currentApp);
     //mtb_Launch_This_App(exampleWriteText_App);

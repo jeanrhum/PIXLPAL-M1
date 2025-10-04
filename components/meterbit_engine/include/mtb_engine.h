@@ -311,10 +311,10 @@ extern Mtb_Applications_FullScreen* otaUpdateApplication_App;
 
 // All User Apps
 // Clocks and Timers
-extern Mtb_Applications_StatusBar* calendarClock_App;            // App Communication Route: 0/0
+extern Mtb_Applications_StatusBar* calendarClock_App;           // App Communication Route: 0/0
 extern Mtb_Applications_FullScreen* pixelAnimClock_App;         // App Communication Route: 0/1
 extern Mtb_Applications_StatusBar* worldClock_App;              // App Communication Route: 0/2
-extern Mtb_Applications_FullScreen* bigClockCalendar_App;        // App Communication Route: 0/3
+extern Mtb_Applications_FullScreen* bigClockCalendar_App;       // App Communication Route: 0/3
 extern Mtb_Applications_StatusBar* stopWatch_App;               // App Communication Route: 0/4
 
 // News and Messages
@@ -331,17 +331,17 @@ extern Mtb_Applications_StatusBar *openMeteo_App;               // App Communica
 extern Mtb_Applications_StatusBar *googleWeather_App;           // App Communication Route: 3/2
 
 // Finance
-extern Mtb_Applications_StatusBar *finnhub_Stats_App;          // App Communication Route: 4/0
+extern Mtb_Applications_StatusBar *finnhub_Stats_App;           // App Communication Route: 4/0
 extern Mtb_Applications_StatusBar *crypto_Stats_App;            // App Communication Route: 4/1
 extern Mtb_Applications_StatusBar *currencyExchange_App;        // App Communication Route: 4/2
-extern Mtb_Applications_StatusBar *polygonFX_App;              // App Communication Route: 4/3
+extern Mtb_Applications_StatusBar *polygonFX_App;               // App Communication Route: 4/3
 
 // Sports
 extern Mtb_Applications_StatusBar *liveFootbalScores_App;       // App Communication Route: 5/0
 
 // Animations
-extern Mtb_Applications_FullScreen *studioLight_App;             // App Communication Route: 6/0
-extern Mtb_Applications_FullScreen *worldFlags_App;               // App Communication Route: 6/1
+extern Mtb_Applications_FullScreen *studioLight_App;            // App Communication Route: 6/0
+extern Mtb_Applications_FullScreen *worldFlags_App;             // App Communication Route: 6/1
 
 // Notifications
 extern Mtb_Applications_StatusBar *apple_Notifications_App;     // App Communication Route: 7/0

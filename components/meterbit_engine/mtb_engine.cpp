@@ -86,23 +86,6 @@ void mtb_Launch_This_App(Mtb_Applications *dApp, Mtb_Do_Prev_App_t do_Prv_App){
     mtb_Start_This_Service(app_Luncher_Task_Sv);
 }
 
-// void mtb_Start_This_Service(Mtb_Services* dService){
-//     if(*(dService->serviceT_Handle_ptr) == NULL) {
-//         dService->service_is_Running = pdTRUE;
-//         if(dService->usePSRAM_Stack == pdFALSE) xTaskCreatePinnedToCore(dService->service, dService->serviceName, dService->stackSize, dService, dService->servicePriority, dService->serviceT_Handle_ptr, dService->serviceCore);
-//         else {
-//         dService->task_stack = (StackType_t *)heap_caps_malloc(dService->stackSize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-//         dService->tcb_psram = (StaticTask_t *)heap_caps_malloc(sizeof(StaticTask_t), MALLOC_CAP_INTERNAL);
-//         if (dService->task_stack == NULL || dService->tcb_psram == NULL){ 
-//             ESP_LOGI(TAG, "Failed to allocate task/tcb stack in PSRAM\n"); 
-//             return;
-//             }
-//         // Create the task with the stack in PSRAM
-//         *dService->serviceT_Handle_ptr = xTaskCreateStaticPinnedToCore(dService->service, dService->serviceName, dService->stackSize, dService, dService->servicePriority, dService->task_stack, dService->tcb_psram, dService->serviceCore);
-//         }
-//     }
-// }
-
 void mtb_Start_This_Service(Mtb_Services* dService){
     BaseType_t result;
     if(*(dService->serviceT_Handle_ptr) == NULL) {  // Prevents the service from being started multiple times
@@ -266,17 +249,6 @@ void Mtb_Applications::appDestroy(Mtb_Applications* dApp){
         while(*(element->serviceT_Handle_ptr) != NULL) delay(1);
         }
     }
-    
-    //ESP_LOGI(TAG, "APP DESTROY SECOND STAGE COMPLETED\n");
-
-    // for (uint8_t i = 0; i < 5; i++){
-    //     if (*(scroll_Tasks_Sv[i]->serviceT_Handle_ptr) != NULL){
-    //         while (*(scroll_Tasks_Sv[i]->serviceT_Handle_ptr) != NULL){
-    //             Mtb_ScrollText_t::scrollTask_HolderPointers[i]->scroll_Quit = pdTRUE;
-    //             delay(1);
-    //         }
-    //     }
-    // }
 
     for (uint8_t i = 0; i < 5; i++){
     if((scrollText_Handles[i]) != NULL){
@@ -316,7 +288,7 @@ void mtb_End_This_App(Mtb_Applications* dApp){
             dApp->task_stack = NULL;
             dApp->tcb_psram = NULL;
         }
-        //ESP_LOGI(TAG, "@@@@@@@@@@@@@@ THIS APPLICATION HAS BEEN DELETED: %s \n", dApp->appName);
+        //ESP_LOGI(TAG, "THIS APPLICATION HAS BEEN DELETED: %s \n", dApp->appName);
         vTaskDelete(NULL);
 }
 
@@ -329,7 +301,7 @@ void mtb_End_This_Service(Mtb_Services* dService){
             dService->task_stack = NULL;
             dService->tcb_psram = NULL;
         }
-        //ESP_LOGI(TAG, "************* THIS SERVICE HAS BEEN DELETED: %s \n", dService->serviceName);
+        //ESP_LOGI(TAG, "THIS SERVICE HAS BEEN DELETED: %s \n", dService->serviceName);
         vTaskDelete(NULL);
 }
 
@@ -432,7 +404,7 @@ void mtb_App_Init(Mtb_Applications *thisApp, Mtb_Services* pointer_0, Mtb_Servic
     if(thisApp->mtb_App_EncoderFn_ptr != encoderDoNothing) mtb_Start_This_Service(encoder_Task_Sv);
     if(thisApp->fullScreen == false) mtb_Draw_Status_Bar();
     MTB_APP_IS_ACTIVE = pdTRUE;
-    //ESP_LOGI(TAG, "&&&&&&&&&&&&& THIS APPLICATION HAS BEEN STARTED: %s \n", Mtb_Applications::currentRunningApp->appName);
+    //ESP_LOGI(TAG, "THIS APPLICATION HAS BEEN STARTED: %s \n", Mtb_Applications::currentRunningApp->appName);
 }
 
 //*************************************************************************************************************************************************************
@@ -440,7 +412,6 @@ void mtb_App_Init(Mtb_Applications *thisApp, Mtb_Services* pointer_0, Mtb_Servic
 void mtb_Ble_App_Cmd_Respond_Success(const char* appRoute, uint8_t commandNumber, uint8_t response ){
     String jsonString;
     JsonDocument doc;
-
     doc["pxp_command"] = commandNumber;
     doc["response"] = response;
     serializeJson(doc, jsonString);
@@ -660,7 +631,7 @@ void mtb_Sports_App_Lunch(uint16_t dAppNumber){
 //********NUMBER 6 */
 void mtb_Animations_App_Lunch(uint16_t dAppNumber){
     switch(dAppNumber){
-        case 0: mtb_Launch_This_App(studioLight_App); break;   // ABOUT 10KB RAM IS CONSUMED JUST BY HAVING THIS APPLICATION AMONG THE OTHERS
+        case 0: mtb_Launch_This_App(studioLight_App); break;
         case 1: mtb_Launch_This_App(worldFlags_App); break;
         default: ESP_LOGI(TAG, "No Apps to Lunch.\n");
             break;

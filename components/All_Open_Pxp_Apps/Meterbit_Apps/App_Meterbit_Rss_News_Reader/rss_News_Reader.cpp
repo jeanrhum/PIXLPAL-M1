@@ -30,7 +30,7 @@ EXT_RAM_BSS_ATTR Mtb_Applications_StatusBar *rssNewsApp = new Mtb_Applications_S
 
 const char* bbc_url = "https://feeds.bbci.co.uk/news/rss.xml";
 const char* cnn_url = "http://rss.cnn.com/rss/edition.rss";
-const char* reuters_url = "http://feeds.reuters.com/reuters/topNews";
+//const char* reuters_url = "http://feeds.reuters.com/reuters/topNews";
 
 struct RssSettings_t {
   bool enable_bbc;
@@ -45,8 +45,6 @@ void updateSourceSelection(JsonDocument&);
 
 void rssNewsApp_Task(void* dApp) {
   Mtb_Applications *thisApp = (Mtb_Applications *) dApp;
-  thisApp->mtb_App_EncoderFn_ptr = NULL;
-  thisApp->mtb_App_ButtonFn_ptr = NULL;
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(updateSourceSelection);
 
   mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
@@ -111,13 +109,13 @@ void fetchAndDisplayHeadlines(Mtb_Applications *thisApp) {
   std::vector<String> headlines;
   bool bbcOk = !rssSettings.enable_bbc || fetchFeed(bbc_url, headlines);
   bool cnnOk = !rssSettings.enable_cnn || fetchFeed(cnn_url, headlines);
-  bool reutersOk = !rssSettings.enable_reuters || fetchFeed(reuters_url, headlines);
+  //bool reutersOk = !rssSettings.enable_reuters || fetchFeed(reuters_url, headlines);
 
-  if (!bbcOk || !cnnOk || !reutersOk) {
+  if (!bbcOk || !cnnOk /*|| !reutersOk*/ ) {
     String errorMsg = "Feed error: ";
     if (!bbcOk) errorMsg += "BBC ";
     if (!cnnOk) errorMsg += "CNN ";
-    if (!reutersOk) errorMsg += "Reuters ";
+    //if (!reutersOk) errorMsg += "Reuters ";
     rssErrorMsg.mtb_Scroll_This_Text(errorMsg.c_str());
   } else {
     rssErrorMsg.mtb_Scroll_Active(STOP_SCROLL);

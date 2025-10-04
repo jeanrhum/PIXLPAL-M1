@@ -16,7 +16,7 @@
 static const char studioLightAppRoute[] = "6/0";
 
 struct StudioLight_Data_t {
-uint16_t studioLightColor[10] = {WHITE, PURPLE, GREEN, YELLOW, BLUE, MAGENTA, PALE_AZURE, EBONY, SWEET_BROWN, SKOBELOFF}; // 
+uint16_t studioLightColor[5] = {WHITE, PURPLE, GREEN, YELLOW, BLUE}; //, MAGENTA, PALE_AZURE, EBONY, SWEET_BROWN, SKOBELOFF}; // 
 uint8_t studioLightColorMode = FULLSCREEN_MODE;
 uint16_t studioLightDuration = 100;
 };
