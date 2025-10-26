@@ -62,7 +62,7 @@ void cryptoStats_App_Task(void* dApplication){
   Mtb_FixedText_t current_price_tag(38, 23, Terminal6x8, CYAN);
   Mtb_FixedText_t price_change_percentage_24h_tag(38, 33, Terminal6x8, GREEN);
   Mtb_FixedText_t vwap24Hr_tag(38, 43, Terminal6x8, MAGENTA);
-  Mtb_ScrollText_t moreCryptoData (0, 55, 128, WHITE, 20, 1, Terminal6x8);
+  Mtb_ScrollText_t moreCryptoData (0, 55, 128, Terminal6x8, WHITE, 20, 1);
 
   coinSymbol_tag.mtb_Write_String("SYM:");
   current_price_tag.mtb_Write_String("PRC:");

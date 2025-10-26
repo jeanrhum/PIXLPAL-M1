@@ -22,8 +22,8 @@ using namespace tinyxml2;
 
 #define RSS_REFRESH_INTERVAL_MINUTES 3
 
-Mtb_ScrollText_t rssScroller(2, 52, 124, WHITE, 20, 0xFFFF, Terminal6x8);
-Mtb_ScrollText_t rssErrorMsg(2, 42, 124, ORANGE_RED, 20, 3, Terminal6x8);
+Mtb_ScrollText_t rssScroller(2, 52, 124, Terminal6x8, WHITE, 20, 0xFFFF);
+Mtb_ScrollText_t rssErrorMsg(2, 42, 124, Terminal6x8, ORANGE_RED, 20, 3);
 
 EXT_RAM_BSS_ATTR TaskHandle_t rssNewsApp_Task_H = NULL;
 EXT_RAM_BSS_ATTR Mtb_Applications_StatusBar *rssNewsApp = new Mtb_Applications_StatusBar(rssNewsApp_Task, &rssNewsApp_Task_H, "RSS News", 8192, pdTRUE);

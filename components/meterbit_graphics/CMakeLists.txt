@@ -5,4 +5,4 @@ idf_component_register(
                     )
 
                     # Add the static library file to the component
-target_link_libraries(${COMPONENT_LIB} "${CMAKE_CURRENT_SOURCE_DIR}/libmeterbit_graphics.a")
+ target_link_libraries(${COMPONENT_LIB} "${CMAKE_CURRENT_SOURCE_DIR}/libmeterbit_graphics.a")

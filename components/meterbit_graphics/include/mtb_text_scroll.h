@@ -78,8 +78,8 @@ class Mtb_ScrollText_t {
         Mtb_ScrollText_t(){}
         // Mtb_ScrollText_t(const uint8_t *f) { font = (uint8_t*) f; }
         // Mtb_ScrollText_t(uint16_t x, uint16_t y, uint16_t w, uint16_t c, const uint8_t* f);
-        Mtb_ScrollText_t(uint16_t xAxis, uint16_t yAxis, uint16_t width, uint16_t color, uint16_t speed, uint16_t pass, const uint8_t* font, uint64_t scr_hld = 0, uint8_t makeBeep = 0);
-        Mtb_ScrollText_t(uint16_t xAxis, uint16_t yAxis, uint16_t width, uint16_t color);
+        Mtb_ScrollText_t(uint16_t xAxis, uint16_t yAxis, uint16_t width, const uint8_t* font, uint16_t color = WHITE, uint16_t speed = DEF_SPEED, uint16_t pass = 1, uint64_t scr_hld = 0, uint8_t makeBeep = 0);
+        //Mtb_ScrollText_t(uint16_t xAxis, uint16_t yAxis, uint16_t width, uint16_t color);
         Mtb_ScrollText_t(uint16_t color, uint16_t pass = 1, uint8_t makeBeep = 0);
 };
 

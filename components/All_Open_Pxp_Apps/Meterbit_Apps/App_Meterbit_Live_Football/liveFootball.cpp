@@ -103,7 +103,7 @@ void liveFootball_App_Task(void *dApplication){
 
     scoreLineLive = new Mtb_CentreText_t(63, 29, Terminal10x16, WHITE);
     elapsedTimeLive = new Mtb_CentreText_t(63, 46, Terminal6x8, CYAN);
-    moreDataScroll = new Mtb_ScrollText_t(0, 55, 128, WHITE, 10, 1, Terminal6x8);
+    moreDataScroll = new Mtb_ScrollText_t(0, 55, 128, Terminal6x8, WHITE, 10, 1);
 
     statsTitle = new Mtb_CentreText_t(63, 15, Terminal6x8, WHITE, TURQUOISE);
 

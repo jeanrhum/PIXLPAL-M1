@@ -15,7 +15,7 @@ void exampleWriteTextApp_Task(void* dApplication){
 
 // Declare Fixed and Scroll Text Variables
   Mtb_FixedText_t exampleFixedText(24,15, Terminal8x12, GREEN);
-  Mtb_ScrollText_t exampleScrollText (5, 40, 118, WHITE, 20, 1, Terminal6x8);
+  Mtb_ScrollText_t exampleScrollText (5, 40, 118, Terminal6x8, WHITE, 20, 1);
 
 // Write Fixed Text to display
   exampleFixedText.mtb_Write_String("Hello World."); // Write text in default color

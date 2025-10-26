@@ -148,14 +148,13 @@ void exampleWriteTextApp_Task(void* dApplication){
 // ****** Initialize the App Parameters
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
   mtb_App_Init(thisApp);
-// End of App parameter initialization
 
-// Declare Fixed and Scroll Text Variables
-  Mtb_FixedText_t exampleFixedText(24,15, Terminal8x12, GREEN);
-  Mtb_ScrollText_t exampleScrollText (5, 40, 118, WHITE, 20, 1, Terminal6x8);
+// Declare Fixed and Scroll Text Objects
+  Mtb_FixedText_t exampleFixedText(24, 15, Terminal8x12, GREEN);
+  Mtb_ScrollText_t exampleScrollText(5, 40, 118, Terminal6x8, WHITE, 20, 1);
 
 // Write Fixed Text to display
-  exampleFixedText.mtb_Write_String("Hello World."); // Write text in default color
+  exampleFixedText.mtb_Write_String("Hello World.");                     // Write text in default color
   //exampleFixedText.mtb_Write_Colored_String(" in Color!", PURPLE);     // Write text in different color
 
   while (MTB_APP_IS_ACTIVE == pdTRUE) {

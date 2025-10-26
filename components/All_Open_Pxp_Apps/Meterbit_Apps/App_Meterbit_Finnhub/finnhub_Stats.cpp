@@ -64,7 +64,7 @@ void finhubStats_App_Task(void* dApplication){
     Mtb_FixedText_t current_price_tag(40, 23, Terminal6x8, YELLOW);
     Mtb_FixedText_t priceChangePercent_tag(40, 33, Terminal6x8, YELLOW_GREEN);    
     Mtb_FixedText_t cPrice_diff_tag(40, 43, Terminal6x8, GREEN);
-    Mtb_ScrollText_t moreStockData (0, 55, 128, WHITE, 20, 1, Terminal6x8);
+    Mtb_ScrollText_t moreStockData (0, 55, 128, Terminal6x8, WHITE, 20, 1);
 
     stockID_tag.mtb_Write_String("STK:");
     current_price_tag.mtb_Write_String("PRC:");

@@ -85,7 +85,7 @@ void  pixAnimClock_App_Task(void* dApplication){
   uint16_t pre_Year = 111;
 
   headerText = new Mtb_CentreText_t(63, 9, Terminal10x17, YELLOW);
-  headerTextScroll = new Mtb_ScrollText_t(2, 1, 124, WHITE, 30, 0xFFFF, Terminal10x17, 4000);
+  headerTextScroll = new Mtb_ScrollText_t(2, 1, 124, Terminal10x17, WHITE, 30, 0xFFFF, 4000);
 
   ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 2\n");
   mtb_Read_Nvs_Struct("pixAnimClk", &savedPixAnimClkSet, sizeof(PixAnimClkSettings_t));

@@ -59,9 +59,9 @@ void  internetRadio_App_Task(void* dApplication){
     mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv, mtb_Dac_N_Mic_Sv);
   //**************************************************************************************************************************
     AudioTextTransfer_T audioTextReceiver;
-    Mtb_ScrollText_t fmStation(11, 46, 116, CYAN, 15, 20000, Terminal6x8, 20000);
-    Mtb_ScrollText_t streamTitle(11, 55, 116, YELLOW, 30, 20000, Terminal6x8, 5000);
-    Mtb_ScrollText_t conn2Sta(11, 55, 116, ORANGE_RED, 15, 20000, Terminal6x8, 1000);
+    Mtb_ScrollText_t fmStation(11, 46, 116, Terminal6x8, CYAN, 15, 20000, 20000);
+    Mtb_ScrollText_t streamTitle(11, 55, 116, Terminal6x8, YELLOW, 30, 20000, 5000);
+    Mtb_ScrollText_t conn2Sta(11, 55, 116, Terminal6x8, ORANGE_RED, 15, 20000, 1000);
     Mtb_FixedText_t internet_Text(6, 14, Terminal8x12);
     Mtb_FixedText_t radio_Text(14, 28, Terminal8x12);
 

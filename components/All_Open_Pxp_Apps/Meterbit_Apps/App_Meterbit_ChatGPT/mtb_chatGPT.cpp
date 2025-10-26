@@ -76,13 +76,13 @@ void  chatGPT_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *) dApplication;
   psRamWavFileChatGPT recordWavFile;
   Mtb_FixedText_t chatGPT_Text(46, 19, Terminal10x17);
-  Mtb_ScrollText_t conn2Intnt(11, 55, 116, ORANGE_RED, 15, 20000, Terminal6x8, 1000);
+  Mtb_ScrollText_t conn2Intnt(11, 55, 116, Terminal6x8, ORANGE_RED, 15, 20000, 1000);
   thisApp->mtb_App_EncoderFn_ptr = mtb_Vol_Control_Encoder;
   thisApp->mtb_App_ButtonFn_ptr = Listen_Process_Button;
   mtb_App_Init(thisApp, mtb_Dac_N_Mic_Sv, mtb_Status_Bar_Clock_Sv);
   //**************************************************************************************************************************
-  humanSpeech = new Mtb_ScrollText_t (11, 45, 116, CYAN, 25, 20000, Terminal6x8, 0);
-  aiResponse = new Mtb_ScrollText_t(11, 55, 116, YELLOW, 15, 3, Terminal6x8, 0);
+  humanSpeech = new Mtb_ScrollText_t (11, 45, 116, Terminal6x8, CYAN, 25, 20000,  0);
+  aiResponse = new Mtb_ScrollText_t(11, 55, 116, Terminal6x8, YELLOW, 15, 3, 0);
 
   if(chatPrompt_Queue_H == NULL) chatPrompt_Queue_H = xQueueCreate(3, sizeof(psRamWavFileChatGPT));
   if(chatPromptTimer_H == NULL) chatPromptTimer_H = xTimerCreate("chatPrompt Timer", pdMS_TO_TICKS(1000), true, NULL, chatPrompt_TimerCallback);

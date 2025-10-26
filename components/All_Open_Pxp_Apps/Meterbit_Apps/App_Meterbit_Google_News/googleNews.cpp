@@ -140,11 +140,11 @@ void displayNewsHeadlines(String headlines) {
             headlineScrolls[headlineIndex] = new Mtb_ScrollText_t(
                 0, 
                 headlineIndex * 8, 
-                128, 
+                128,
+                Terminal6x8, 
                 headlineColors[headlineIndex % (sizeof(headlineColors) / sizeof(headlineColors[0]))], 
                 20, 
-                1, 
-                Terminal6x8
+                1
             );
         }
         // Set the scrolling text with the corresponding color.

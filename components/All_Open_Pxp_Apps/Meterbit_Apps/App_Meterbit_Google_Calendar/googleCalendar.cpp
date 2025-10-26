@@ -46,8 +46,8 @@ bool showTaskNotes      = true;
 // ======================
   Mtb_FixedText_t* event_Task_Name;
   
-  Mtb_ScrollText_t* event_Task_Title_1 = new Mtb_ScrollText_t(12, 24, 113, CYAN, 10, 0xFFFF, Terminal6x8, 15000);
-  Mtb_ScrollText_t* event_Task_Title_2 = new Mtb_ScrollText_t(12, 44, 113, CYAN, 10, 0xFFFF, Terminal6x8, 15000);
+  Mtb_ScrollText_t* event_Task_Title_1 = new Mtb_ScrollText_t(12, 24, 113, Terminal6x8, CYAN, 10, 0xFFFF, 15000);
+  Mtb_ScrollText_t* event_Task_Title_2 = new Mtb_ScrollText_t(12, 44, 113, Terminal6x8, CYAN, 10, 0xFFFF, 15000);
 
   Mtb_FixedText_t* event_Task_Date_1 = new Mtb_FixedText_t(11, 35, Terminal4x6, LEMON_YELLOW);
   Mtb_FixedText_t* event_Task_Date_2 = new Mtb_FixedText_t(11, 55, Terminal4x6, LEMON_YELLOW);
