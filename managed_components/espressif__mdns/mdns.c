@@ -1795,8 +1795,8 @@ static bool _mdns_create_answer_from_service(mdns_tx_packet_t *packet, mdns_serv
         // According to RFC6763-section12.1, for DNS-SD, SRV, TXT and all address records
         // should be included in additional records.
         if (!_mdns_alloc_answer(&packet->answers, MDNS_TYPE_PTR, service, NULL, false, false) ||
-                !_mdns_alloc_answer(is_delegated ? &packet->additional : &packet->answers, MDNS_TYPE_SRV, service, NULL, send_flush, false) ||
-                !_mdns_alloc_answer(is_delegated ? &packet->additional : &packet->answers, MDNS_TYPE_TXT, service, NULL, send_flush, false) ||
+                !_mdns_alloc_answer(&packet->additional, MDNS_TYPE_SRV, service, NULL, send_flush, false) ||
+                !_mdns_alloc_answer(&packet->additional, MDNS_TYPE_TXT, service, NULL, send_flush, false) ||
                 !_mdns_alloc_answer((shared || is_delegated) ? &packet->additional : &packet->answers, MDNS_TYPE_A, service, host, send_flush,
                                     false) ||
                 !_mdns_alloc_answer((shared || is_delegated) ? &packet->additional : &packet->answers, MDNS_TYPE_AAAA, service, host,
@@ -2656,13 +2656,18 @@ static mdns_txt_linked_item_t *_mdns_allocate_txt(size_t num_items, mdns_txt_ite
                 mdns_mem_free(new_item);
                 break;
             }
-            new_item->value = mdns_mem_strdup(txt[i].value);
-            if (!new_item->value) {
-                mdns_mem_free((char *)new_item->key);
-                mdns_mem_free(new_item);
-                break;
+            if (txt[i].value) {
+                new_item->value = mdns_mem_strdup(txt[i].value);
+                if (!new_item->value) {
+                    mdns_mem_free((char *)new_item->key);
+                    mdns_mem_free(new_item);
+                    break;
+                }
+                new_item->value_len = strlen(new_item->value);
+            } else {
+                new_item->value = NULL;
+                new_item->value_len = 0;
             }
-            new_item->value_len = strlen(new_item->value);
             new_item->next = new_txt;
             new_txt = new_item;
         }

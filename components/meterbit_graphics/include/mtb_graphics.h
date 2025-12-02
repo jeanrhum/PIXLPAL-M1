@@ -82,13 +82,13 @@ typedef struct{
 
     // USER IMAGE DRAW FUNCTIONS
     extern BaseType_t mtb_Draw_Local_Png(const Mtb_LocalImage_t&);                                                                                          // Draw a local PNG image from SPIFFS
-    extern void mtb_Draw_Online_Png(const Mtb_OnlineImage_t* images, size_t drawPNGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);    // Draw an online PNG image from URL
+    extern bool mtb_Draw_Online_Png(const Mtb_OnlineImage_t* images, size_t drawPNGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);    // Draw an online PNG image from URL
     extern void mtb_Download_Multi_Png(const Mtb_OnlineImage_t* images, size_t drawPNGsCount);                                                              // Download multiple PNG images from URLs
     extern bool mtb_Draw_Multi_Png(size_t drawPNGsCount, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);                                          // Draw multiple pre-downloaded PNG images
 
 
     extern BaseType_t mtb_Draw_Local_Svg(const Mtb_LocalImage_t&);                                                                                          // Draw a local SVG image from SPIFFS
-    extern void mtb_Draw_Online_Svg(const Mtb_OnlineImage_t* images, size_t drawSVGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);    // Draw an online SVG image from URL
+    extern bool mtb_Draw_Online_Svg(const Mtb_OnlineImage_t* images, size_t drawSVGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);    // Draw an online SVG image from URL
     extern void mtb_Download_Multi_Svg(const Mtb_OnlineImage_t* images, size_t drawSVGsCount);                                                              // Download multiple SVG images from URLs
     extern bool mtb_Draw_Multi_Svg(size_t drawSVGsCount, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);                                          // Draw multiple pre-downloaded SVG images
 

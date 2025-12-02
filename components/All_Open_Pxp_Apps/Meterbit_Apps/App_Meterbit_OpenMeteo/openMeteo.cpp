@@ -10,6 +10,9 @@
 #include "openMeteo.h"
 #include "mtb_engine.h"
 
+
+// CONSIDER IMPLEMENTING AN APP USING THE https://api.met.no/ API SERVICE PROVIDER
+
 OpenMeteoData_t currentOpenMeteoData = {
     "Lagos, Nigeria"
 };

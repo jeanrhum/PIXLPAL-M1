@@ -501,7 +501,7 @@ bool mtb_Download_Svg_Img_To_PSRAM(const char* url, uint8_t** outBuffer, size_t*
     return false;
   }
 
-  //ESP_LOGI(TAG, "[Download SVG] Success: %d bytes downloaded to %s\n", totalRead, usedHeap ? "heap" : "PSRAM");
+  ESP_LOGI(TAG, "[Download SVG] Success: %d bytes downloaded to %s\n", totalRead, usedHeap ? "heap" : "PSRAM");
   *outBuffer = buffer;
   *outSize = totalRead;
   return true;

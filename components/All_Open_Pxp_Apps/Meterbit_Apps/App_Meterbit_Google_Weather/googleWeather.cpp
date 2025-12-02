@@ -10,6 +10,8 @@
 #include "googleWeather.h"
 #include "mtb_engine.h"
 
+// CONSIDER IMPLEMENTING AN APP USING THE https://api.met.no/ API SERVICE PROVIDER
+
 GoogleWeatherData_t currentGoogleWeatherData = {
     "Lagos, Nigeria"
 };
