@@ -125,7 +125,7 @@ void system_Time_Zone(JsonDocument& dCommand){
   tzset();
   Mtb_Applications::currentRunningApp->elementRefresh = true;
   mtb_Write_Nvs_Struct("ntp TimeZone", ntp_TimeZone, sizeof(ntp_TimeZone));
-  //mtb_Start_This_Service(sntp_Time_Sv);
+  //mtb_Launch_This_Service(mtb_Sntp_Time_Sv);
   bleSettingsComSend(mtb_System_Settings_Route, success);
 }
 //**06*********************************************************************************************************************

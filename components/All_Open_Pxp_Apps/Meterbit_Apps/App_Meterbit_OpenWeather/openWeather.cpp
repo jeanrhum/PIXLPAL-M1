@@ -31,7 +31,7 @@ void openWeather_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
   thisApp->mtb_App_ButtonFn_ptr = changeOpenWeatherLocation;
-  mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setOpenWeatherLocation);
+  mtb_App_BleComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setOpenWeatherLocation);
   mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
   //************************************************************************************ */
   currentOpenWeatherData = (OpenWeatherData_t){

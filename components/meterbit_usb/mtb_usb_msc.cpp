@@ -56,7 +56,7 @@ static void msc_event_cb(const msc_host_event_t *event, void *arg);
 void usb_Mass_Strg_Task(void *params);
 //static void print_device_info(msc_host_device_info_t *info);
 
-EXT_RAM_BSS_ATTR Mtb_Services *usb_Mass_Storage_Sv = new Mtb_Services(usb_Mass_Strg_Task, &usb_Mass_Storage_H, "USB Mass Strg", 4096, 2, pdFALSE, 1);
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_Usb_Mass_Storage_Sv = new Mtb_Services(usb_Mass_Strg_Task, &usb_Mass_Storage_H, "USB Mass Strg", 4096, 2, pdFALSE, 1);
 
 void usb_Mass_Strg_Task(void* d_Service){
     Mtb_Services *thisServ = (Mtb_Services *)d_Service;

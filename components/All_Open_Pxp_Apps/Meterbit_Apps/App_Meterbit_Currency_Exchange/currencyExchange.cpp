@@ -41,7 +41,7 @@ void currencyExchange_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
   thisApp->mtb_App_ButtonFn_ptr = buttonChangeDisplayCurrency;
-  mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(showParticularCurrencies, add_RemoveCurrencySymbol, setcurrencyChangeInterval, saveCurrencyAPI_key);
+  mtb_App_BleComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(showParticularCurrencies, add_RemoveCurrencySymbol, setcurrencyChangeInterval, saveCurrencyAPI_key);
   mtb_App_Init(thisApp);
   //************************************************************************************ */
   currentCurrencies = (Currency_Stat_t){};

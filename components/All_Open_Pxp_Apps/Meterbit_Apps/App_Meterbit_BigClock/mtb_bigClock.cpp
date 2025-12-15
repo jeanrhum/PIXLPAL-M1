@@ -18,7 +18,7 @@ void  bigClock_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
   thisApp->mtb_App_ButtonFn_ptr = randomButtonControl;
-  mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(bigClock_Color_Change, bigClockGet_NTP_Local_Time);
+  mtb_App_BleComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(bigClock_Color_Change, bigClockGet_NTP_Local_Time);
   mtb_App_Init(thisApp);
   //**************************************************************************************************************************
   mtb_Read_Nvs_Struct("Clock Cols", &clk_Updt, sizeof(Clock_Colors));
@@ -233,7 +233,7 @@ if(pre_Day != now->tm_mday  || thisApp->elementRefresh){
 //**13*********************************************************************************************************************
 void showbigClockCalendar(JsonDocument& dCommand){ //use the radio button selection widget
   uint8_t cmd = dCommand["app_command"];
-  //mtb_Start_This_Service(sntp_Time_Sv);
+  //mtb_Launch_This_Service(mtb_Sntp_Time_Sv);
   mtb_Ble_App_Cmd_Respond_Success(bigClockCalendarAppRoute, cmd, pdPASS);
 }
 
@@ -283,6 +283,6 @@ void bigClock_Color_Change(JsonDocument& dCommand){
 //**13*********************************************************************************************************************
 void bigClockGet_NTP_Local_Time(JsonDocument& dCommand){
   uint8_t cmd = dCommand["app_command"];
-  mtb_Start_This_Service(sntp_Time_Sv);
+  mtb_Launch_This_Service(mtb_Sntp_Time_Sv);
   mtb_Ble_App_Cmd_Respond_Success(bigClockCalendarAppRoute, cmd, pdPASS);
 }

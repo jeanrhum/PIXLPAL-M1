@@ -63,7 +63,7 @@ void delete_file(const char *path) {
     }
 }
 
-EXT_RAM_BSS_ATTR Mtb_Services *Audio_Listening_Sv = new Mtb_Services(micAudioListen_Task, &micAudioListen_Task_H, "Aud listen Serv", 4096);
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_Audio_Listening_Sv = new Mtb_Services(micAudioListen_Task, &micAudioListen_Task_H, "Aud listen Serv", 4096);
 EXT_RAM_BSS_ATTR Mtb_Applications_StatusBar *chatGPT_App = new Mtb_Applications_StatusBar(chatGPT_App_Task, &chatGPT_Task_H, "chatGPT App", 10240); // Review down this stack size later.
 
 //***************************************************************************************************
@@ -167,7 +167,7 @@ void  chatGPT_App_Task(void* dApplication){
   conn2Intnt.mtb_Scroll_Active(STOP_SCROLL);
   aiResponse->mtb_Scroll_Active(STOP_SCROLL);
   humanSpeech->mtb_Scroll_Active(STOP_SCROLL);
-  Audio_Listening_Sv->service_is_Running = pdFALSE;
+  mtb_Audio_Listening_Sv->service_is_Running = pdFALSE;
 
   delete humanSpeech;
   delete aiResponse;
@@ -182,18 +182,18 @@ void Listen_Process_Button(button_event_t button_Data){
 
     case BUTTON_PRESSED:
     if(Mtb_Applications::internetConnectStatus == true){
-       if(*(Audio_Listening_Sv->serviceT_Handle_ptr) == NULL){
+       if(*(mtb_Audio_Listening_Sv->serviceT_Handle_ptr) == NULL){
         mtb_Use_Mic_Or_Dac(DISABLE_I2S_MIC_DAC); 
         xTimerStart(chatPromptTimer_H, 0);
         aiResponse->mtb_Scroll_Active(STOP_SCROLL);
         humanSpeech->mtb_Scroll_Active(STOP_SCROLL);
-        mtb_Start_This_Service(Audio_Listening_Sv);
+        mtb_Launch_This_Service(mtb_Audio_Listening_Sv);
         recordingCountdown = REC_DURATION_SECONDS_MAX;
         mtb_Draw_Local_Png({"/batIcons/micRec.png", 2, 45});
       } else {
         xTimerStop(chatPromptTimer_H, 0);
         mtb_Use_Mic_Or_Dac(DISABLE_I2S_MIC_DAC);
-        Audio_Listening_Sv->service_is_Running = pdFALSE;
+        mtb_Audio_Listening_Sv->service_is_Running = pdFALSE;
         mtb_Draw_Local_Png({"/batIcons/aiResp.png", 2, 45});
       }} else {
       statusBarNotif.mtb_Scroll_This_Text("NO INTERNET CONNECTION. TRY AGAIN LATER.", ORANGE);
@@ -279,7 +279,7 @@ void chatPrompt_TimerCallback(TimerHandle_t chatPrompt){
       mtb_Draw_Local_Png({"/batIcons/wipe7x7.png", 2,45});
     }
   } else{
-    Audio_Listening_Sv->service_is_Running = pdFALSE;
+    mtb_Audio_Listening_Sv->service_is_Running = pdFALSE;
     mtb_Use_Mic_Or_Dac(DISABLE_I2S_MIC_DAC);
     xTimerStop(chatPromptTimer_H, 0);
   }

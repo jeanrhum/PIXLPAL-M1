@@ -37,8 +37,8 @@ EXT_RAM_BSS_ATTR QueueHandle_t running_App_BLECom_Queue = NULL;
 void (*encoderFn_ptr)(rotary_encoder_rotation_t) = encoderDoNothing;
 void (*buttonFn_ptr)(button_event_t) = buttonDoNothing;
 
-EXT_RAM_BSS_ATTR Mtb_Services *app_Luncher_Task_Sv = new Mtb_Services(appLuncherTask, &appLuncher_Task_H, "App Luncher Task", 4096, 3);
-EXT_RAM_BSS_ATTR Mtb_Services *read_Write_NVS_Sv = new Mtb_Services(nvsAccessTask, &nvsAccess_Task_Handle, "NVS Access Tsk", 4096, 3);
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_App_Luncher_Sv = new Mtb_Services(appLuncherTask, &appLuncher_Task_H, "App Luncher Task", 4096, 3);
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_Read_Write_NVS_Sv = new Mtb_Services(nvsAccessTask, &nvsAccess_Task_Handle, "NVS Access Tsk", 4096, 3);
 
 EXT_RAM_BSS_ATTR Mtb_Applications* Mtb_Applications::otaAppHolder = nullptr;
 EXT_RAM_BSS_ATTR Mtb_Applications* Mtb_Applications::currentRunningApp = nullptr;
@@ -65,26 +65,13 @@ Mtb_Applications::Mtb_Applications(void (*dApplication)(void *), TaskHandle_t* d
     usePSRAM_Stack = psRamStack;
 }
 
-// void bleRestoreTimerCallBkFn(TimerHandle_t bleRstTim){
-//     //Launch the Calendar Clock App to Restore BLE Link.
-//     const char calendarClockAppBleCom[] = "0/0|{\"app_command\":255}";
-//     mtb_BleCom_Data_Trans_t com_Data;
-
-//     com_Data.pay_size = strlen(calendarClockAppBleCom);
-//     com_Data.payload = heap_caps_calloc(com_Data.pay_size + 1, sizeof(uint8_t), MALLOC_CAP_SPIRAM);
-//     memcpy(com_Data.payload, calendarClockAppBleCom, com_Data.pay_size);
-
-//     xQueueSend(appCom_queue, &com_Data, portMAX_DELAY);
-//     mtb_Start_This_Service(mtb_Ble_AppComm_Parser_Sv);
-// }
-
 void mtb_Launch_This_App(Mtb_Applications *dApp, Mtb_Do_Prev_App_t do_Prv_App){
     dApp->action_On_Prev_App = do_Prv_App;
     xQueueSend(appLuncherQueue, &dApp, portMAX_DELAY);
-    mtb_Start_This_Service(app_Luncher_Task_Sv);
+    mtb_Launch_This_Service(mtb_App_Luncher_Sv);
 }
 
-void mtb_Start_This_Service(Mtb_Services* dService){
+void mtb_Launch_This_Service(Mtb_Services* dService){
     //ESP_LOGI(TAG, "Attempting to start service: %s\n", dService->serviceName);
     BaseType_t result;
     if(*(dService->serviceT_Handle_ptr) == NULL) {  // Prevents the service from being started multiple times
@@ -93,6 +80,17 @@ void mtb_Start_This_Service(Mtb_Services* dService){
             //if(result == pdPASS) ESP_LOGI(TAG, "Task %s successfully launched\n", dService->serviceName);
             if(result != pdPASS) ESP_LOGE(TAG, "Task %s failed to launch with error code: %d\n", dService->serviceName, result);
 }
+}
+
+void mtb_Queue_This_Service(Mtb_Services* dService){
+    // //ESP_LOGI(TAG, "Attempting to start service: %s\n", dService->serviceName);
+    // BaseType_t result;
+    // if(*(dService->serviceT_Handle_ptr) == NULL) {  // Prevents the service from being started multiple times
+    //     dService->service_is_Running = pdTRUE;
+    //         result = xTaskCreatePinnedToCore(dService->service, dService->serviceName, dService->stackSize, dService, dService->servicePriority, dService->serviceT_Handle_ptr, dService->serviceCore);
+    //         //if(result == pdPASS) ESP_LOGI(TAG, "Task %s successfully launched\n", dService->serviceName);
+    //         if(result != pdPASS) ESP_LOGE(TAG, "Task %s failed to launch with error code: %d\n", dService->serviceName, result);
+//}
 }
 
 void mtb_Resume_This_Service(Mtb_Services* dService){
@@ -339,9 +337,9 @@ void mtb_App_Init(Mtb_Applications *thisApp, Mtb_Services* pointer_0, Mtb_Servic
 
     delay(250);
     dma_display->clearScreen();
-    for (Mtb_Services *element : thisApp->appServices) if (element != nullptr) mtb_Start_This_Service(element);
-    if(thisApp->mtb_App_ButtonFn_ptr != buttonDoNothing) mtb_Start_This_Service(button_Task_Sv);
-    if(thisApp->mtb_App_EncoderFn_ptr != encoderDoNothing) mtb_Start_This_Service(encoder_Task_Sv);
+    for (Mtb_Services *element : thisApp->appServices) if (element != nullptr) mtb_Launch_This_Service(element);
+    if(thisApp->mtb_App_ButtonFn_ptr != buttonDoNothing) mtb_Launch_This_Service(mtb_Button_Task_Sv);
+    if(thisApp->mtb_App_EncoderFn_ptr != encoderDoNothing) mtb_Launch_This_Service(mtb_Encoder_Task_Sv);
     if(thisApp->fullScreen == false) mtb_Draw_Status_Bar();
     MTB_APP_IS_ACTIVE = pdTRUE;
     //ESP_LOGI(TAG, "THIS APPLICATION HAS BEEN STARTED: %s \n", Mtb_Applications::currentRunningApp->appName);
@@ -390,45 +388,45 @@ void ble_AppCom_Parse_Task(void* dService){
             else dCmd_num = 0xFFFF;
 
             switch (dCmd_num){
-            case 0: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[0] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[0](dCommand);
+            case 0: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[0] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[0](dCommand);
                 break;
-            case 1: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[1] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[1](dCommand);
+            case 1: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[1] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[1](dCommand);
                 break;
-            case 2: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[2] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[2](dCommand);
+            case 2: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[2] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[2](dCommand);
                 break;
-            case 3: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[3] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[3](dCommand);
+            case 3: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[3] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[3](dCommand);
                 break;
-            case 4: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[4] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[4](dCommand);
+            case 4: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[4] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[4](dCommand);
               break;
-            case 5: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[5] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[5](dCommand);
+            case 5: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[5] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[5](dCommand);
                 break;
-            case 6: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[6] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[6](dCommand);
+            case 6: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[6] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[6](dCommand);
                 break;
-            case 7: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[7] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[7](dCommand);
+            case 7: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[7] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[7](dCommand);
                 break;
-            case 8: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[8] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[8](dCommand);
+            case 8: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[8] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[8](dCommand);
                 break;
-            case 9: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[9] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[9](dCommand);
+            case 9: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[9] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[9](dCommand);
                 break;
-            case 10: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[10] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[10](dCommand);
+            case 10: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[10] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[10](dCommand);
                 break;
-            case 11: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[11] != nullptr) mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[11](dCommand);
+            case 11: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[11] != nullptr) mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[11](dCommand);
                 break;
-            // case 12: if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[12] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[12](dCommand);;     // These are for extras or future upgrades.
+            // case 12: if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[12] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[12](dCommand);;     // These are for extras or future upgrades.
             //     break;
-            // case 13:  if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[13] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[13](dCommand);
+            // case 13:  if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[13] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[13](dCommand);
             //     break;
-            // case 14:  if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[4] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[14](dCommand);
+            // case 14:  if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[4] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[14](dCommand);
             //     break;
-            // case 15:  if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[15] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[15](dCommand);
+            // case 15:  if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[15] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[15](dCommand);
             //     break;
-            // case 16:  if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[16] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[16](dCommand);
+            // case 16:  if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[16] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[16](dCommand);
             //     break;
-            // case 17:  if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[17] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[17](dCommand);
+            // case 17:  if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[17] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[17](dCommand);
             //     break;
-            // case 18:  if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[18] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[18](dCommand);
+            // case 18:  if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[18] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[18](dCommand);
             //     break;
-            // case 19:  if(mtb_Ble_AppComm_Parser_Sv->bleAppComServiceFns[19] != nullptr) mtb_Ble_AppComm_Parser_Sv.bleAppComServiceFns[19](dCommand);
+            // case 19:  if(mtb_App_BleComm_Parser_Sv->bleAppComServiceFns[19] != nullptr) mtb_App_BleComm_Parser_Sv.bleAppComServiceFns[19](dCommand);
             //     break;
             case 255:
                 statusBarNotif.mtb_Scroll_This_Text("APP IS ALREADY ACTIVE", CYAN);
@@ -662,7 +660,7 @@ esp_err_t mtb_Write_Nvs_Struct(const char* keyIdentifier, void* struct_pointer, 
         .struct_size = struct_sized
     };
     xQueueSend(nvsAccessQueue, &dataWriteHolder, pdMS_TO_TICKS(5000));
-    mtb_Start_This_Service(read_Write_NVS_Sv);
+    mtb_Launch_This_Service(mtb_Read_Write_NVS_Sv);
     xSemaphoreTake(nvsAccessComplete_Sem, portMAX_DELAY);
     return 0;
 }
@@ -675,7 +673,7 @@ esp_err_t mtb_Read_Nvs_Struct(const char* keyIdentifier, void* struct_pointer, s
         .struct_size = struct_sized
     };
     xQueueSend(nvsAccessQueue, &dataReadHolder, pdMS_TO_TICKS(5000));
-    mtb_Start_This_Service(read_Write_NVS_Sv);
+    mtb_Launch_This_Service(mtb_Read_Write_NVS_Sv);
     xSemaphoreTake(nvsAccessComplete_Sem, portMAX_DELAY);
     return 0;
 }

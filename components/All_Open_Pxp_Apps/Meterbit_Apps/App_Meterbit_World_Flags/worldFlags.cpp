@@ -38,7 +38,7 @@ void worldFlags_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
   thisApp->mtb_App_ButtonFn_ptr = changeWorldFlagButton;
-  mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(selectDisplayFlag, selectPreferredFlags, cycleAllFlags, showCountryName, setFlagChangeIntv);
+  mtb_App_BleComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(selectDisplayFlag, selectPreferredFlags, cycleAllFlags, showCountryName, setFlagChangeIntv);
   mtb_App_Init(thisApp);
   //************************************************************************************ */
   worldFlagsInfo = (WorldFlags_Data_t){

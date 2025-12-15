@@ -244,7 +244,8 @@ extern void mtb_App_Init(Mtb_Applications*, Mtb_Services* pointer_0 = nullptr, M
 
 // App Parser Functions
 extern void mtb_Launch_This_App(Mtb_Applications* dApp, Mtb_Do_Prev_App_t do_Prv_App = DESTROY_PREVIOUS_APP);
-extern void mtb_Start_This_Service(Mtb_Services*);
+extern void mtb_Launch_This_Service(Mtb_Services*);
+extern void mtb_Queue_This_Service(Mtb_Services*);
 extern void mtb_Resume_This_Service(Mtb_Services*);
 extern void mtb_Suspend_This_Service(Mtb_Services*);
 extern void mtb_End_This_Service(Mtb_Services *);
@@ -272,27 +273,26 @@ extern void mtb_Audio_Stream_App_Lunch(uint16_t);
 extern void mtb_Miscellanous_App_Lunch(uint16_t);
 
 // System Sevices
-extern Mtb_Service_With_Fns* mtb_Ble_AppComm_Parser_Sv;
-extern Mtb_Services* ble_SetCom_Parse_Sv;           
-extern Mtb_Services* beep_Buzzer_Sv;                
-//extern Mtb_Services* statusBarIconUpdate_Sv;     
-extern Mtb_Services* sntp_Time_Sv;                  
-extern Mtb_Services* app_Luncher_Task_Sv;           
-extern Mtb_Services* scroll_Tasks_Sv[];             
-extern Mtb_Services* read_Write_NVS_Sv;
-extern Mtb_Services* pngLocalImageDrawer_Sv;
-// extern Mtb_Services* pngOnlineImageDrawer_Sv; 
-// extern Mtb_Services* svgOnlineImageDrawer_Sv;
-extern Mtb_Services *gitHubFileDwnload_Sv;
 
+// Fast Executing Services. These services will be made to share a particular stack DRAM memory to prevent memory fragmentation.
+extern Mtb_Services* mtb_App_Luncher_Sv;
+extern Mtb_Service_With_Fns* mtb_App_BleComm_Parser_Sv;
+extern Mtb_Services* mtb_Sett_BleComm_Parser_Sv;           
+extern Mtb_Services* mtb_Beep_Buzzer_Sv;                     
+extern Mtb_Services* mtb_Sntp_Time_Sv;                             
+extern Mtb_Services* mtb_Read_Write_NVS_Sv;
+extern Mtb_Services* mtb_Png_Local_ImageDrawer_Sv;
+extern Mtb_Services* mtb_SvgLocal_ImageDrawer_Sv;
+
+// Slow Executing Services
+extern Mtb_Services *mtb_GitHub_File_Dwnload_Sv;
 extern Mtb_Services* mtb_Dac_N_Mic_Sv;
 extern Mtb_Services* mtb_Usb_Audio_Sv;
-// extern Mtb_Services* usb_Speaker_Sv;
-// extern Mtb_Services* bleControl_Sv;
-
-extern Mtb_Service_With_Fns* encoder_Task_Sv;       
-extern Mtb_Service_With_Fns* button_Task_Sv;        
-extern Mtb_Services* usb_Mass_Storage_Sv;      
+//extern Mtb_Services* UAC_Speaker_Sv;
+extern Mtb_Services* mtb_Scroll_Tasks_Sv[];   
+extern Mtb_Service_With_Fns* mtb_Encoder_Task_Sv;       
+extern Mtb_Service_With_Fns* mtb_Button_Task_Sv;        
+extern Mtb_Services* mtb_Usb_Mass_Storage_Sv;      
 
 //*********************************************************************************** */
 // Mtb_Applications SECTION (USERS AND SYSTEM APPS)
@@ -300,7 +300,7 @@ extern Mtb_Services* usb_Mass_Storage_Sv;
 // Application Mtb_Services
 extern Mtb_Services* pixAnimClkGif_Sv;
 extern Mtb_Services* spotifyScreenUpdate_Sv;    
-extern Mtb_Services* Audio_Listening_Sv;
+extern Mtb_Services* mtb_Audio_Listening_Sv;
 extern Mtb_Services* mtb_Status_Bar_Clock_Sv;    
 extern Mtb_Services* mtb_Status_Bar_Calendar_Sv; 
 

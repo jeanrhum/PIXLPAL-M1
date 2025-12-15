@@ -150,7 +150,7 @@ void audioProcessing_Task(void *d_Service){
     // now reading the I2S input stream (with NEW <I2S_std.h>)
     size_t bytes_read = 0;
 //######################################################################################################################
-  //mtb_Start_This_Service(mtb_Usb_Audio_Sv);
+  //mtb_Launch_This_Service(mtb_Usb_Audio_Sv);
   while (MTB_SERV_IS_ACTIVE == pdTRUE){
 
   //****** MIC CODE LOOP STARTS HERE ************************************************************************************************************ */  
@@ -756,7 +756,7 @@ void usbSpeakerProcess_Task(void *d_Service){
     ESP_ERROR_CHECK(usb_host_install(&host_config));
     ESP_LOGI(TAG, "USB Host installed");
 
-    mtb_Start_This_Service(UAC_Speaker_Sv);
+    mtb_Launch_This_Service(UAC_Speaker_Sv);
     delay(100);
     xTaskNotifyGive(uac_task_handle);
 

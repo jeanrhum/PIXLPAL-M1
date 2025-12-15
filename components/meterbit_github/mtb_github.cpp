@@ -15,7 +15,7 @@ EXT_RAM_BSS_ATTR QueueHandle_t files2Download_Q = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t files2Download_Task_H = NULL;
 void files2Download_Task(void*);
 
-EXT_RAM_BSS_ATTR Mtb_Services *gitHubFileDwnload_Sv = new Mtb_Services(files2Download_Task, &files2Download_Task_H, "Github Dwnld", 10240, 2, pdFALSE, 1);
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_GitHub_File_Dwnload_Sv = new Mtb_Services(files2Download_Task, &files2Download_Task_H, "Github Dwnld", 10240, 2, pdFALSE, 1);
 
 bool mtb_Download_Github_Strg_File(String bucketPath, String flashPath){
     // GitHub repository details

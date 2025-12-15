@@ -48,8 +48,8 @@ EXT_RAM_BSS_ATTR String setValue;
 #define SETCOM_CHARACTERISTIC_UUID "472a6244-3bb8-4a7e-a107-4b47dea92bc3"
 #define APPCOM_CHARACTERISTIC_UUID "c8f1eead-48b0-449d-accb-5fdb87c4b566"
 
-EXT_RAM_BSS_ATTR Mtb_Services *ble_SetCom_Parse_Sv = new Mtb_Services(ble_SetCom_Parse_Task, &ble_SetCom_Parser_Task_Handle, "bleSetCom_parser_task", 6144, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
-EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *mtb_Ble_AppComm_Parser_Sv = new Mtb_Service_With_Fns(ble_AppCom_Parse_Task, &ble_AppCom_Parser_Task_Handle, "bleAppCom_Parser_task", 6144, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_Sett_BleComm_Parser_Sv = new Mtb_Services(ble_SetCom_Parse_Task, &ble_SetCom_Parser_Task_Handle, "bleSetCom_parser_task", 6144, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
+EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *mtb_App_BleComm_Parser_Sv = new Mtb_Service_With_Fns(ble_AppCom_Parse_Task, &ble_AppCom_Parser_Task_Handle, "bleAppCom_Parser_task", 6144, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
 
 class MyServerCallbacks : public NimBLEServerCallbacks{
   void onConnect(NimBLEServer *pServer, NimBLEConnInfo& connInfo){
@@ -87,7 +87,7 @@ if(pCharacteristic == setCom_characteristic){
       setCom_data.payload = heap_caps_calloc(pCharacteristic->getLength() + 1, sizeof(uint8_t), MALLOC_CAP_SPIRAM);
       memcpy(setCom_data.payload, pCharacteristic->getValue(), pCharacteristic->getLength());
       xQueueSend(setCom_queue, &setCom_data, portMAX_DELAY);
-      mtb_Start_This_Service(ble_SetCom_Parse_Sv);
+      mtb_Launch_This_Service(mtb_Sett_BleComm_Parser_Sv);
 
     } else if (pCharacteristic == appCom_characteristic){
       appValue = pCharacteristic->getValue().c_str();
@@ -97,7 +97,7 @@ if(pCharacteristic == setCom_characteristic){
       appCom_data.payload = heap_caps_calloc(pCharacteristic->getLength() + 1, sizeof(uint8_t), MALLOC_CAP_SPIRAM);
       memcpy(appCom_data.payload, pCharacteristic->getValue(), pCharacteristic->getLength());
       xQueueSend(appCom_queue, &appCom_data, portMAX_DELAY);
-      mtb_Start_This_Service(mtb_Ble_AppComm_Parser_Sv);
+      mtb_Launch_This_Service(mtb_App_BleComm_Parser_Sv);
     } else ESP_LOGI(TAG, "PIXLPAL IS RECEIVING THE COMMAND, BUT IT'S NOT BEING RIGHTLY PARSED.\n");
   }
 };

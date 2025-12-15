@@ -47,7 +47,7 @@ void  pixAnimClock_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
   thisApp->mtb_App_ButtonFn_ptr = pixelAnimChangeButton;
-  mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setClockTitleAndColor, setPixAnimTheme, setPixAnimClkColors, requestNTP_Time);
+  mtb_App_BleComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setClockTitleAndColor, setPixAnimTheme, setPixAnimClkColors, requestNTP_Time);
 
   mtb_App_Init(thisApp, pixAnimClkGif_Sv);
   //************************************************************************************************************************ */
@@ -422,7 +422,7 @@ void setPixAnimClkColors(JsonDocument& dCommand){
 //**5*********************************************************************************************************************
 void requestNTP_Time(JsonDocument& dCommand){
   uint8_t cmdNumber = dCommand["app_command"];
-  mtb_Start_This_Service(sntp_Time_Sv);
+  mtb_Launch_This_Service(mtb_Sntp_Time_Sv);
   mtb_Ble_App_Cmd_Respond_Success(pixelAnimClockAppRoute, cmdNumber, pdPASS);
 }
 

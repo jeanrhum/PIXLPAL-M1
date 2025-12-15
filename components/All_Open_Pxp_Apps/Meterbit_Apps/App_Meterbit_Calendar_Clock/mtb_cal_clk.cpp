@@ -24,7 +24,7 @@ void  calendarClock_App_Task(void* dApplication){
   // } 
   thisApp->mtb_App_EncoderFn_ptr = mtb_Brightness_Control;
   thisApp->mtb_App_ButtonFn_ptr = randomButtonControl;
-  mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(clock_Color_Change, get_NTP_Local_Time);
+  mtb_App_BleComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(clock_Color_Change, get_NTP_Local_Time);
   mtb_App_Init(thisApp);
   //**************************************************************************************************************************
   mtb_Read_Nvs_Struct("Clock Cols", &clk_Updt, sizeof(Clock_Colors));
@@ -284,6 +284,6 @@ void clock_Color_Change(JsonDocument& dCommand){
 //**13*********************************************************************************************************************
 void get_NTP_Local_Time(JsonDocument& dCommand){
   uint8_t cmd = dCommand["app_command"];
-  mtb_Start_This_Service(sntp_Time_Sv);
+  mtb_Launch_This_Service(mtb_Sntp_Time_Sv);
   mtb_Ble_App_Cmd_Respond_Success(classicClockAppRoute, cmd, pdPASS);
 }
