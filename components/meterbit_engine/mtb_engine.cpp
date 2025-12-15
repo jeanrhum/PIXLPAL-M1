@@ -26,9 +26,11 @@ Mtb_CurrentApp_t currentApp{
 EXT_RAM_BSS_ATTR QueueHandle_t clock_Update_Q = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t ble_AppCom_Parser_Task_Handle = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t appLuncher_Task_H = NULL;
+//EXT_RAM_BSS_ATTR TaskHandle_t servLuncher_Task_H = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t nvsAccess_Task_Handle = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t freeServAndAppPSRAM_Handle = NULL;
 EXT_RAM_BSS_ATTR QueueHandle_t appLuncherQueue = NULL;
+EXT_RAM_BSS_ATTR QueueHandle_t servLuncherQueue = NULL;
 EXT_RAM_BSS_ATTR QueueHandle_t nvsAccessQueue = NULL;
 EXT_RAM_BSS_ATTR SemaphoreHandle_t nvsAccessComplete_Sem = NULL;
 EXT_RAM_BSS_ATTR QueueHandle_t running_App_BLECom_Queue = NULL;
@@ -38,6 +40,7 @@ void (*encoderFn_ptr)(rotary_encoder_rotation_t) = encoderDoNothing;
 void (*buttonFn_ptr)(button_event_t) = buttonDoNothing;
 
 EXT_RAM_BSS_ATTR Mtb_Services *mtb_App_Luncher_Sv = new Mtb_Services(appLuncherTask, &appLuncher_Task_H, "App Luncher Task", 4096, 3);
+//EXT_RAM_BSS_ATTR Mtb_Services *mtb_Serv_Luncher_Sv = new Mtb_Services(servLuncherTask, &servLuncher_Task_H, "Serv Luncher Task", 2048, 3);
 EXT_RAM_BSS_ATTR Mtb_Services *mtb_Read_Write_NVS_Sv = new Mtb_Services(nvsAccessTask, &nvsAccess_Task_Handle, "NVS Access Tsk", 4096, 3);
 
 EXT_RAM_BSS_ATTR Mtb_Applications* Mtb_Applications::otaAppHolder = nullptr;
@@ -83,14 +86,7 @@ void mtb_Launch_This_Service(Mtb_Services* dService){
 }
 
 void mtb_Queue_This_Service(Mtb_Services* dService){
-    // //ESP_LOGI(TAG, "Attempting to start service: %s\n", dService->serviceName);
-    // BaseType_t result;
-    // if(*(dService->serviceT_Handle_ptr) == NULL) {  // Prevents the service from being started multiple times
-    //     dService->service_is_Running = pdTRUE;
-    //         result = xTaskCreatePinnedToCore(dService->service, dService->serviceName, dService->stackSize, dService, dService->servicePriority, dService->serviceT_Handle_ptr, dService->serviceCore);
-    //         //if(result == pdPASS) ESP_LOGI(TAG, "Task %s successfully launched\n", dService->serviceName);
-    //         if(result != pdPASS) ESP_LOGE(TAG, "Task %s failed to launch with error code: %d\n", dService->serviceName, result);
-//}
+    xQueueSend(servLuncherQueue, &dService, portMAX_DELAY);
 }
 
 void mtb_Resume_This_Service(Mtb_Services* dService){
@@ -115,6 +111,32 @@ void appLuncherTask(void * dService){
     }
     mtb_End_This_Service(thisService);
 }
+
+// void servLuncherTask(void * dService){
+//     Mtb_Services *thisService = (Mtb_Services *)dService;
+
+//     StackType_t* task_stack = (StackType_t *)heap_caps_malloc(4096 * sizeof(StackType_t), MALLOC_CAP_INTERNAL);
+//     StaticTask_t* tcb_static = (StaticTask_t *)heap_caps_malloc(sizeof(StaticTask_t), MALLOC_CAP_INTERNAL);
+//     if (task_stack == NULL || tcb_static == NULL){
+//         ESP_LOGW(TAG, "Failed to allocate task/tcb stack in PSRAM\n");
+//         return;
+//     }
+
+//     Mtb_Services *servLunchHolder = nullptr;
+//     while (1){
+//         if (xQueueReceive(servLuncherQueue, &servLunchHolder, pdMS_TO_TICKS(200))){
+//         printf("Launching Queued Service: %s\n", servLunchHolder->serviceName);
+//         // Dynamic task creation
+//         *servLunchHolder->serviceT_Handle_ptr = xTaskCreateStaticPinnedToCore(servLunchHolder->service, servLunchHolder->serviceName, servLunchHolder->stackSize, servLunchHolder, servLunchHolder->servicePriority, task_stack, tcb_static, servLunchHolder->serviceCore);
+//         while(*(servLunchHolder->serviceT_Handle_ptr) != NULL) delay(10);
+//         printf("Completed Queued Service: %s\n", servLunchHolder->serviceName);
+//         }
+//     }
+
+//     heap_caps_free((void*)task_stack);
+//     heap_caps_free((void*)tcb_static);
+//     mtb_End_This_Service(thisService);
+// }
 
 void nvsAccessTask(void * dService){
     Mtb_Services *thisService = (Mtb_Services *)dService;
@@ -186,7 +208,6 @@ void Mtb_Applications::appSuspend(Mtb_Applications* dApp){
     for (Mtb_Services* element : dApp->appServices) if (element != nullptr) mtb_Suspend_This_Service(element);
     vTaskSuspend(*(dApp->appHandle_ptr));
 }
-
 
 void Mtb_Applications::appDestroy(Mtb_Applications* dApp){
 

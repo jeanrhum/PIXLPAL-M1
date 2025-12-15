@@ -11,7 +11,7 @@
 #include "mtb_buzzer.h"
 
 EXT_RAM_BSS_ATTR TaskHandle_t sntp_Time_handle = NULL;
-EXT_RAM_BSS_ATTR Mtb_Services *mtb_Sntp_Time_Sv = new Mtb_Services(sntp_Time_init_Task, &sntp_Time_handle, "NTP Init", 8192);
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_Sntp_Time_Sv = new Mtb_Services(sntp_Time_init_Task, &sntp_Time_handle, "NTP Init", 4096);
 
 void on_got_time(struct timeval* tv){
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -22,7 +22,7 @@ void on_got_time(struct timeval* tv){
 
 void sntp_Time_init_Task(void* dService){
   Mtb_Services *thisService = (Mtb_Services *)dService;
-  if(clock_Update_Q == NULL) clock_Update_Q = xQueueCreate(10, sizeof(Clock_Colors));
+  if(clock_Update_Q == NULL) clock_Update_Q = xQueueCreate(10, sizeof(Clock_Colors)); // REVISIT -> Potential memory savings by putting queue in PSRAM.
 
   //ESP_LOGI(TAG, "ntp time zone is: %s \n", ntp_TimeZone);
 

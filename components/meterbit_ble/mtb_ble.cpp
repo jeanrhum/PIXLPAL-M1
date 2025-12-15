@@ -48,8 +48,8 @@ EXT_RAM_BSS_ATTR String setValue;
 #define SETCOM_CHARACTERISTIC_UUID "472a6244-3bb8-4a7e-a107-4b47dea92bc3"
 #define APPCOM_CHARACTERISTIC_UUID "c8f1eead-48b0-449d-accb-5fdb87c4b566"
 
-EXT_RAM_BSS_ATTR Mtb_Services *mtb_Sett_BleComm_Parser_Sv = new Mtb_Services(ble_SetCom_Parse_Task, &ble_SetCom_Parser_Task_Handle, "bleSetCom_parser_task", 6144, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
-EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *mtb_App_BleComm_Parser_Sv = new Mtb_Service_With_Fns(ble_AppCom_Parse_Task, &ble_AppCom_Parser_Task_Handle, "bleAppCom_Parser_task", 6144, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_Sett_BleComm_Parser_Sv = new Mtb_Services(ble_SetCom_Parse_Task, &ble_SetCom_Parser_Task_Handle, "bleSetCom_parser_task", 4096, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
+EXT_RAM_BSS_ATTR Mtb_Service_With_Fns *mtb_App_BleComm_Parser_Sv = new Mtb_Service_With_Fns(ble_AppCom_Parse_Task, &ble_AppCom_Parser_Task_Handle, "bleAppCom_Parser_task", 4096, 4); // THIS FUNCTIONS CANNOT BE AN PSRAM MEMORY BECAUSE THEY MIGHT ATTEMPT TO WRITE THE ONBOARD FLASH
 
 class MyServerCallbacks : public NimBLEServerCallbacks{
   void onConnect(NimBLEServer *pServer, NimBLEConnInfo& connInfo){
@@ -106,8 +106,8 @@ void mtb_Ble_Comm_Init(void){
   appValue = "0";
   setValue = "1";
 
-  if(setCom_queue == NULL) setCom_queue = xQueueCreate(bleCom_queue_size,sizeof(mtb_BleCom_Data_Trans_t));     // A queue of character pointers
-  if(appCom_queue == NULL) appCom_queue = xQueueCreate(bleCom_queue_size,sizeof(mtb_BleCom_Data_Trans_t));     // A queue of character pointers
+  if(setCom_queue == NULL) setCom_queue = xQueueCreate(bleCom_queue_size,sizeof(mtb_BleCom_Data_Trans_t));     // REVISIT -> Potential memory savings by putting queue in PSRAM.
+  if(appCom_queue == NULL) appCom_queue = xQueueCreate(bleCom_queue_size,sizeof(mtb_BleCom_Data_Trans_t));     // REVISIT -> Potential memory savings by putting queue in PSRAM.
 
     // Create the BLE Device
     mtb_Read_Nvs_Struct("pxpBleDevName", pxp_BLE_Name, sizeof(pxp_BLE_Name));

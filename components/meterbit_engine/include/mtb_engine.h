@@ -24,7 +24,9 @@
 
 extern QueueHandle_t clock_Update_Q;
 extern TaskHandle_t appLuncher_Task_H;
+//extern TaskHandle_t servLuncher_Task_H;
 extern QueueHandle_t appLuncherQueue;
+extern QueueHandle_t servLuncherQueue;
 extern QueueHandle_t nvsAccessQueue;
 extern SemaphoreHandle_t nvsAccessComplete_Sem;
 extern QueueHandle_t running_App_BLECom_Queue;
@@ -49,6 +51,7 @@ struct NvsAccessParams_t{
 };
 
 extern void appLuncherTask(void *);
+//extern void servLuncherTask(void *);
 extern void nvsAccessTask(void *);
 
 //**************************************************************************************************************************
@@ -245,7 +248,7 @@ extern void mtb_App_Init(Mtb_Applications*, Mtb_Services* pointer_0 = nullptr, M
 // App Parser Functions
 extern void mtb_Launch_This_App(Mtb_Applications* dApp, Mtb_Do_Prev_App_t do_Prv_App = DESTROY_PREVIOUS_APP);
 extern void mtb_Launch_This_Service(Mtb_Services*);
-extern void mtb_Queue_This_Service(Mtb_Services*);
+//extern void mtb_Queue_This_Service(Mtb_Services*);
 extern void mtb_Resume_This_Service(Mtb_Services*);
 extern void mtb_Suspend_This_Service(Mtb_Services*);
 extern void mtb_End_This_Service(Mtb_Services *);
@@ -285,6 +288,7 @@ extern Mtb_Services* mtb_Png_Local_ImageDrawer_Sv;
 extern Mtb_Services* mtb_SvgLocal_ImageDrawer_Sv;
 
 // Slow Executing Services
+//extern Mtb_Services* mtb_Serv_Luncher_Sv;
 extern Mtb_Services *mtb_GitHub_File_Dwnload_Sv;
 extern Mtb_Services* mtb_Dac_N_Mic_Sv;
 extern Mtb_Services* mtb_Usb_Audio_Sv;

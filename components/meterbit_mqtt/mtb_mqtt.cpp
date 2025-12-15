@@ -90,8 +90,8 @@ void stop_MQTT_Client(){
 
 void initialize_MQTT(){
 
-  // if(config_Cmd_MQTT_queue == NULL) config_Cmd_MQTT_queue = xQueueCreate(mqtt_queue_size,sizeof(mqtt_Data_Trans_t));     // A queue of character pointers
-  // if(app_MQTT_queue == NULL) app_MQTT_queue = xQueueCreate(mqtt_queue_size,sizeof(mqtt_Data_Trans_t));     // A queue of character pointers
+  // if(config_Cmd_MQTT_queue == NULL) config_Cmd_MQTT_queue = xQueueCreate(mqtt_queue_size,sizeof(mqtt_Data_Trans_t));     // REVISIT -> Potential memory savings by putting queue in PSRAM.
+  // if(app_MQTT_queue == NULL) app_MQTT_queue = xQueueCreate(mqtt_queue_size,sizeof(mqtt_Data_Trans_t));     // REVISIT -> Potential memory savings by putting queue in PSRAM.
 
   // // Subscribe to a topic pattern and attach a callback
   // mqttServer.subscribe("#", [](const char *topic, const void *payload, size_t payload_size){

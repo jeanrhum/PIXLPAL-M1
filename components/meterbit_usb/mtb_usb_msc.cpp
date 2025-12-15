@@ -61,7 +61,7 @@ EXT_RAM_BSS_ATTR Mtb_Services *mtb_Usb_Mass_Storage_Sv = new Mtb_Services(usb_Ma
 void usb_Mass_Strg_Task(void* d_Service){
     Mtb_Services *thisServ = (Mtb_Services *)d_Service;
     // Create FreeRTOS primitives
-    app_queue = xQueueCreate(5, sizeof(app_message_t));
+    app_queue = xQueueCreate(5, sizeof(app_message_t));     // REVISIT -> Potential memory savings by putting queue in PSRAM.
     assert(app_queue);
 
     // Create the event group if not already created

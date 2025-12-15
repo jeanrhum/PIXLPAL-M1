@@ -142,7 +142,7 @@ void audioProcessing_Task(void *d_Service){
   Mtb_Services *thisServ = (Mtb_Services *)d_Service;
   mtb_audioPlayer = new MTB_Audio();
   init_Mic_DAC_Audio_Processing_Peripherals();
-  if(audioTextInfo_Q == NULL) audioTextInfo_Q = xQueueCreate(5, sizeof(AudioTextTransfer_T));
+  if(audioTextInfo_Q == NULL) audioTextInfo_Q = xQueueCreate(5, sizeof(AudioTextTransfer_T)); // REVISIT -> Potential memory savings by putting queue in PSRAM.
   mtb_Read_Nvs_Struct("dev_Volume", &deviceVolume, sizeof(uint8_t));
 
     // Array to store Original audio I2S input stream (reading in chunks, e.g. 1024 values) 
@@ -743,7 +743,7 @@ bool MTB_Audio::mtb_ConnectToUSB_FS( const char *path, int32_t m_fileStartPos){
 void usbSpeakerProcess_Task(void *d_Service){
   Mtb_Services *thisServ = (Mtb_Services *)d_Service;
 
-    s_event_queue = xQueueCreate(10, sizeof(s_event_queue_t));
+    s_event_queue = xQueueCreate(10, sizeof(s_event_queue_t)); // REVISIT -> Potential memory savings by putting queue in PSRAM.
     assert(s_event_queue != NULL);
 
 

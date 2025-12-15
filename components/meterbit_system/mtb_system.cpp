@@ -37,8 +37,8 @@ rotary_encoder_t myencoder{
 
 void mtb_RotaryEncoder_Init(void){
     //static uint8_t fnCalledTimes = 0;
-    if(encoderEvent_Q == NULL) encoderEvent_Q = xQueueCreate(12, sizeof(rotary_encoder_event_t));
-    if(buttonEvent_Q == NULL) buttonEvent_Q = xQueueCreate(6, sizeof(button_event_t));
+    if(encoderEvent_Q == NULL) encoderEvent_Q = xQueueCreate(12, sizeof(rotary_encoder_event_t));   // REVISIT -> Potential memory savings by putting queue in PSRAM.
+    if(buttonEvent_Q == NULL) buttonEvent_Q = xQueueCreate(6, sizeof(button_event_t));              // REVISIT -> Potential memory savings by putting queue in PSRAM.
     rotary_encoder_init(encoderEvent_Q);
     rotary_encoder_add(&myencoder);
     button_init(buttonEvent_Q);
@@ -67,8 +67,9 @@ void button_Task (void* dService){
 }
 
 void mtb_System_Init(void){
-    if(nvsAccessQueue == NULL) nvsAccessQueue = xQueueCreate(20, sizeof(NvsAccessParams_t));
-    if(files2Download_Q == NULL) files2Download_Q = xQueueCreate(20, sizeof(File2Download_t));
+    if(nvsAccessQueue == NULL) nvsAccessQueue = xQueueCreate(20, sizeof(NvsAccessParams_t));    // REVISIT -> Potential memory savings by putting queue in PSRAM.
+    if(files2Download_Q == NULL) files2Download_Q = xQueueCreate(20, sizeof(File2Download_t));  // REVISIT -> Potential memory savings by putting queue in PSRAM.
+    printf("The Size of File2Download_t is: %d \n", sizeof(File2Download_t));
     if(nvsAccessComplete_Sem == NULL) nvsAccessComplete_Sem = xSemaphoreCreateBinary();
     //if(bleRestoreTimer_H == NULL) bleRestoreTimer_H = xTimerCreate("bleRstoreTim", pdMS_TO_TICKS(1000), pdFALSE, NULL, bleRestoreTimerCallBkFn);
     if(Mtb_FixedText_t::scratchPad == nullptr){
@@ -88,10 +89,13 @@ void mtb_System_Init(void){
         }
     }
     }
+
     Mtb_Static_Text_t::mtb_Config_Disp_Panel_Pins();
     init_nvs_mem();
     Mtb_Static_Text_t::mtb_Init_Led_Matrix_Panel();
 	mtb_Read_Nvs_Struct("dev_Volume", &deviceVolume, sizeof(uint8_t));
     mtb_Text_Scrolls_Init();
-    if(appLuncherQueue == NULL) appLuncherQueue = xQueueCreate(4, sizeof(Mtb_Applications*));
+    if(appLuncherQueue == NULL) appLuncherQueue = xQueueCreate(4, sizeof(Mtb_Applications*));   // REVISIT -> Potential memory savings by putting queue in PSRAM.
+    //if(servLuncherQueue == NULL) servLuncherQueue = xQueueCreate(10, sizeof(Mtb_Services*));    // REVISIT -> Potential memory savings by putting queue in PSRAM.
+    //mtb_Launch_This_Service(mtb_Serv_Luncher_Sv);
 }
