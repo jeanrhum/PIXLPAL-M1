@@ -63,13 +63,8 @@ void worldClock_App_Task(void* dApplication){
     mtb_Read_Nvs_Struct("Clock Cols", &clk_Updt, sizeof(Clock_Colors));
     char rtc_Hr_Min[10] = {0};
 
-    worldClockCities = (WorldClock_Data_t) {{
-    "New York",
-    "London",
-    "Tokyo",
-    "Sydney",
-    "Moscow"
-    },
+    worldClockCities = (WorldClock_Data_t){
+    {"New York", "London", "Tokyo", "Sydney", "Moscow"},
     {
     "EST5EDT,M3.2.0/2,M11.1.0/2",
     "GMT0BST,M3.5.0/1,M10.5.0/2",
@@ -258,7 +253,7 @@ void setWorldClockColors(JsonDocument& dCommand){
     worldClockCities.worldColors[dCityIndex] = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     
     mtb_Write_Nvs_Struct("worldClockNv", &worldClockCities, sizeof(WorldClock_Data_t));
-    //Mtb_Applications::currentRunningApp->elementRefresh = true;
+    Mtb_Applications::currentRunningApp->elementRefresh = true;
     mtb_Ble_App_Cmd_Respond_Success(worldClockAppRoute, cmdNumber, pdPASS);
 }
 

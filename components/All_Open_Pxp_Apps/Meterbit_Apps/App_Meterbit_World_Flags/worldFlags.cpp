@@ -14,7 +14,7 @@
 
 static const char TAG[] = "WORLD_FLAGS";
 
-WorldFlags_Data_t worldFlagsInfo;
+EXT_RAM_BSS_ATTR WorldFlags_Data_t worldFlagsInfo;
 
 EXT_RAM_BSS_ATTR TaskHandle_t worldFlags_Task_H = NULL;
 void worldFlags_App_Task(void *);
@@ -32,7 +32,7 @@ void cycleAllFlags(JsonDocument&);
 void showCountryName(JsonDocument&);
 void setFlagChangeIntv(JsonDocument&);
 
-EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *worldFlags_App = new Mtb_Applications_FullScreen(worldFlags_App_Task, &worldFlags_Task_H, "worlfFlagsApp", 4096);
+EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *worldFlags_App = new Mtb_Applications_FullScreen(worldFlags_App_Task, &worldFlags_Task_H, "worldFlagsApp", 8192);
 
 void worldFlags_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
@@ -41,6 +41,12 @@ void worldFlags_App_Task(void* dApplication){
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(selectDisplayFlag, selectPreferredFlags, cycleAllFlags, showCountryName, setFlagChangeIntv);
   mtb_App_Init(thisApp);
   //************************************************************************************ */
+  worldFlagsInfo = (WorldFlags_Data_t){
+        "Nigeria",    // 
+        100,       // 0-255
+        true,         // true or false
+        false       // true or false
+    };
   mtb_Read_Nvs_Struct("worldFlagsData", &worldFlagsInfo, sizeof(WorldFlags_Data_t));
 
     Mtb_OnlineImage_t imageHolder({"placeHolder", 16, 0, 1});

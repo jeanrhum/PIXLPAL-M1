@@ -73,9 +73,6 @@ i2s_std_config_t  std_cfg =
 i2s_chan_handle_t  rx_handle;
 
 
-
-
-
 bool flg_is_recording = false;         // only internally used
 
 bool flg_I2S_initialized = false;      // to avoid any runtime errors in case user forgot to initialize

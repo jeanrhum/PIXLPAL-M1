@@ -10,7 +10,7 @@
 #include "mtb_engine.h"
 #include "musicPlayer.h"
 
-MusicPlayer_Data_t musicPlayerData;
+EXT_RAM_BSS_ATTR MusicPlayer_Data_t musicPlayerData;
 
 EXT_RAM_BSS_ATTR TaskHandle_t musicPlayer_Task_H = NULL;
 void musicPlayer_App_Task(void *);
@@ -31,6 +31,7 @@ void musicPlayer_App_Task(void* dApplication){
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(selectNext_PreviousTrack);
   mtb_App_Init(thisApp, mtb_Dac_N_Mic_Sv);
   //************************************************************************************ */
+  musicPlayerData = (MusicPlayer_Data_t){1};
   mtb_Read_Nvs_Struct("musicPlayer", &musicPlayerData, sizeof(MusicPlayer_Data_t));
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {

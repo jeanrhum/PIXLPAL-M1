@@ -1,5 +1,5 @@
 idf_component_register(
-                    SRCS "lodepng.cpp" #"mtb_text_scroll.cpp" "mtb_graphics.cpp" 
+                    SRCS "lodepng_psram.cpp" "lodepng.cpp" #"mtb_text_scroll.cpp" "mtb_graphics.cpp" 
                     INCLUDE_DIRS "include"
                     REQUIRES  ESP32-HUB75-MatrixPanel-DMA arduino-esp32 nanosvg gif_decoder meterbit_system
                     )

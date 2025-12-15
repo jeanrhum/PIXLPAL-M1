@@ -26,11 +26,7 @@ static const char TAG[] = "INTERNET_RADIO";
 EXT_RAM_BSS_ATTR TaskHandle_t internet_Radio_Task_H = NULL;
 
 // Default RadioStation
-RadioStation_t currentRadioStation = {
-    "Naija Hits FM",
-    "https://stream.zeno.fm/thbqnu2wvmzuv",
-    1
-  };
+EXT_RAM_BSS_ATTR RadioStation_t currentRadioStation;
 
 bool radioPlayReady = true;
 //static const char favouriteRadioStationsFilePath[] = "/radioStations/favSta.csv";
@@ -74,6 +70,12 @@ void  internetRadio_App_Task(void* dApplication){
     mtb_Draw_Local_Png({"/batIcons/radStrmTitle.png", 2, 55});
     dma_display->drawRect(0, 44, 128, 20, PURPLE_NAVY);
 //******************************************************************************************************************************** */
+    currentRadioStation = (RadioStation_t){
+      "Naija Hits FM",
+      "https://stream.zeno.fm/thbqnu2wvmzuv",
+      1
+    };
+    
     while (MTB_APP_IS_ACTIVE == pdTRUE){
     mtb_Read_Nvs_Struct("currentRadSta", &currentRadioStation, sizeof(RadioStation_t));
 

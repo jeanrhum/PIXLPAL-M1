@@ -10,7 +10,7 @@
 #include "mtb_engine.h"
 #include "appleNotifications.h"
 
-AppleNotification_Data_t appleNotificationInfo;
+AppleNotification_Data_t appleNotificationInfo; // REVISIT -> Move into app stack
 
 EXT_RAM_BSS_ATTR TaskHandle_t appleNotification_Task_H = NULL;
 void appleNotifications_App_Task(void *);

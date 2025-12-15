@@ -6,6 +6,7 @@
 #include "mtb_littleFs.h"
 #include "mtb_ble.h"
 #include "esp_heap_caps.h"
+#include "projdefs.h"
 
 using namespace std;
 
@@ -31,7 +32,6 @@ extern "C" void app_main(){
     // Launch the Last Executed App or Launch a particular App after boot-up
     mtb_General_App_Lunch(currentApp);
     // mtb_Launch_This_App(exampleWriteText_App);
-    // mtb_Launch_This_App(polygonFX_App);
 
     // Declare Variable for monitoring Free/Available internal SRAM
     size_t free_sram = 0;
@@ -43,7 +43,7 @@ extern "C" void app_main(){
     free_sram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
 
     // Print the free SRAM size
-    //printf("############ Free Internal SRAM: %zu bytes\n", free_sram);
+    printf("############ Free Internal SRAM: %zu bytes\n", free_sram);
 
     // delay 2 seconds
     delay(2000);

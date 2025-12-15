@@ -61,9 +61,7 @@ bool showOutlookTaskNotes      = true;
 void outlookCalButtonControl(button_event_t){}
 //*************************************************************************************************** */
 
-  OutlookCal_Data_t userOutlookCal = {
-      "no_Refresh_Token_Saved_Yet"
-  };
+  EXT_RAM_BSS_ATTR OutlookCal_Data_t userOutlookCal;
 
   TaskHandle_t outlookCal_Task_H = NULL;
   //TaskHandle_t screenUpdates_Task_H = NULL; 
@@ -112,8 +110,11 @@ void  outlookCal_App_Task(void* dApplication){
   mtb_Draw_Local_Png({"/batIcons/timeSmall.png", 83, 55});
   //mtb_Draw_Local_Png({"/batIcons/outlookEvent.png", 3, 11});
 //######################################################################################### */
-  while (MTB_APP_IS_ACTIVE == pdTRUE){
+  userOutlookCal = (OutlookCal_Data_t){
+      "no_Refresh_Token_Saved_Yet"
+  };
 
+  while (MTB_APP_IS_ACTIVE == pdTRUE){
   while ((Mtb_Applications::internetConnectStatus != true) && (MTB_APP_IS_ACTIVE == pdTRUE)) delay(1000);
   
   mtb_Read_Nvs_Struct("outlookCalData", &userOutlookCal, sizeof(OutlookCal_Data_t));

@@ -28,7 +28,7 @@
 
 #include "freertos/event_groups.h"
 
-EventGroupHandle_t usb_event_group;
+EXT_RAM_BSS_ATTR EventGroupHandle_t usb_event_group;
 
 /**
  * @brief Application Queue and its messages ID
@@ -50,8 +50,8 @@ static const char *TAG = "USB FLSH DRV";
 #define BUFFER_SIZE      4096       // The read/write performance can be improved with larger buffer for the cost of RAM, 4kB is enough for most usecases
 
 EXT_RAM_BSS_ATTR TaskHandle_t usb_Mass_Storage_H = NULL;
-msc_host_device_handle_t msc_device = NULL;
-msc_host_vfs_handle_t vfs_handle = NULL;
+EXT_RAM_BSS_ATTR msc_host_device_handle_t msc_device = NULL;
+EXT_RAM_BSS_ATTR msc_host_vfs_handle_t vfs_handle = NULL;
 static void msc_event_cb(const msc_host_event_t *event, void *arg);
 void usb_Mass_Strg_Task(void *params);
 //static void print_device_info(msc_host_device_info_t *info);

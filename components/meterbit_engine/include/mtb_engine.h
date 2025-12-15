@@ -108,7 +108,7 @@ TaskHandle_t* serviceT_Handle_ptr = NULL;  // Pointer to the Service's task hand
 uint8_t serviceCore = 0;                   // Core on which the application task is running on.
 BaseType_t usePSRAM_Stack = pdFALSE;       // Create task stack in PSRAM (Only use for task that don't require speed)
 StackType_t *task_stack = NULL;
-StaticTask_t* tcb_psram = NULL;
+StaticTask_t* tcb_static = NULL;
 //void* serv_Dyn_Mems[5] = {nullptr};
 uint8_t service_is_Running = pdFALSE;
 
@@ -165,7 +165,7 @@ public:
     uint8_t appCore;                    // Core on which the application task is running on.
     BaseType_t usePSRAM_Stack;          // Create task stack in PSRAM (Only use for task that don't require speed, or for tasks that require large stack size, or tasks that don't read flash using LittleFS)
     StackType_t *task_stack = NULL;     // Pointer to the task stack, if usePSRAM_Stack is true, this will be allocated in PSRAM.
-    StaticTask_t* tcb_psram = NULL;     // Pointer to the task control block, if usePSRAM_Stack is true, this will be allocated in PSRAM.
+    StaticTask_t* tcb_static = NULL;     // Pointer to the task control block, if usePSRAM_Stack is true, this will be allocated in PSRAM.
 
     Mtb_Services* appServices[10] = {nullptr};  // An array of 10 Service Pointers. This will hold pointers to the Mtb_Services tasks both generic and perculiar. e.g. Mic Service 
     void (*mtb_App_EncoderFn_ptr)(rotary_encoder_rotation_t) = encoderDoNothing;        // Pointer to the function that will be called when the rotary encoder is rotated.
@@ -288,7 +288,7 @@ extern Mtb_Services* svgOnlineImageDrawer_Sv;       // USES PSRAM AS TASK STACK
 extern Mtb_Services *gitHubFileDwnload_Sv;
 
 extern Mtb_Services* mtb_Dac_N_Mic_Sv;
-//extern Mtb_Services* mtb_Usb_Audio_Sv;
+extern Mtb_Services* mtb_Usb_Audio_Sv;
 // extern Mtb_Services* usb_Speaker_Sv;
 // extern Mtb_Services* bleControl_Sv;
 

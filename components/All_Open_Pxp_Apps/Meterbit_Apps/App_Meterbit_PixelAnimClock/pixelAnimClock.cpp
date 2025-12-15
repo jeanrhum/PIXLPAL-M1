@@ -21,15 +21,11 @@ using namespace std;
 
 #define HEADER_TEXT_LIMIT    13
 
-PixAnimClkSettings_t savedPixAnimClkSet{
-    .headerText = "HAPPY HOME",
-    .headerTextColor = BLACK,
-    .themeColor = {TEAL, YELLOW, BLACK},
-    .animInterval = 1
-};
+EXT_RAM_BSS_ATTR PixAnimClkSettings_t savedPixAnimClkSet;
 
 EXT_RAM_BSS_ATTR TaskHandle_t pixAnimClock_Task_H = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t pixAnimClockGif_Task_H = NULL;
+
 void printPixAnimClkThm(uint16_t*);
 void pixelAnimChangeButton(button_event_t);
 void pixAnimClockGif_Task(void *d_Arguments);
@@ -45,7 +41,7 @@ Mtb_CentreText_t* headerText;
 Mtb_ScrollText_t* headerTextScroll;
 
 EXT_RAM_BSS_ATTR Mtb_Services *pixAnimClkGif_Sv = new Mtb_Services(pixAnimClockGif_Task, &pixAnimClockGif_Task_H, "Anim Clk Task", 4096); // THIS APP CANNOT BE IN PSRAM BECAUSE IT WRITES/READS THE FLASH DURING OPERATION.
-EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *pixelAnimClock_App = new Mtb_Applications_FullScreen(pixAnimClock_App_Task, &pixAnimClock_Task_H, "Pixel Anim Clk", 4096, pdTRUE); // Review down this stack size later.
+EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *pixelAnimClock_App = new Mtb_Applications_FullScreen(pixAnimClock_App_Task, &pixAnimClock_Task_H, "Pixel Anim Clk", 8192); // Review down this stack size later.
 
 void  pixAnimClock_App_Task(void* dApplication){
   Mtb_Applications *thisApp = (Mtb_Applications *)dApplication;
@@ -89,6 +85,14 @@ void  pixAnimClock_App_Task(void* dApplication){
   headerTextScroll = new Mtb_ScrollText_t(2, 1, 124, Terminal10x17, WHITE, 30, 0xFFFF, 4000);
 
   ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 2\n");
+
+  savedPixAnimClkSet = (PixAnimClkSettings_t){
+      .headerText = "HAPPY HOME",
+      .headerTextColor = BLACK,
+      .themeColor = {TEAL, YELLOW, BLACK},
+      .animInterval = 1
+  };
+
   mtb_Read_Nvs_Struct("pixAnimClk", &savedPixAnimClkSet, sizeof(PixAnimClkSettings_t));
   ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 3\n");
   

@@ -18,7 +18,7 @@ static const char* TAG = "WIFI EVENTS";
 
 struct Wifi_Credentials last_Successful_Wifi;
 
-String ipStr;
+EXT_RAM_BSS_ATTR String ipStr;
 
 //*************************************************************************************
 // Function prototypes for specific event handling

@@ -19,8 +19,88 @@
 //#include "my_secret_keys.h"
 #include "pxp_secret_keys.h"
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
 static const char TAG[] = "METERBIT_DAC_N_MIC";
+#include "usb/usb_host.h"
+#include "usb/uac_host.h"
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
+//static const char *TAG = "UAC_PIPE";
+
+// ---- Audio format (match what you opened the speaker with) ----
+#define USB_SRATE_HZ        48000
+#define USB_BITS_PER_SAMPLE 16
+#define USB_CHANNELS        2
+
+#define UAC_TASK_PRIORITY       5
+#define DEFAULT_UAC_FREQ        48000
+#define DEFAULT_UAC_BITS        16
+#define DEFAULT_UAC_CH          2
+
+// Derived sizes
+#define BYTES_PER_FRAME   (USB_CHANNELS * (USB_BITS_PER_SAMPLE/8))   // 4
+#define BYTES_PER_MS      ((USB_SRATE_HZ/1000) * BYTES_PER_FRAME)    // 192
+
+// How many 1ms packets per USB transfer we push at once
+#ifndef PACKETS_PER_XFER
+#define PACKETS_PER_XFER  4                                          // 4ms => 768B
+#endif
+#define XFER_BYTES        (BYTES_PER_MS * PACKETS_PER_XFER)           // 768
+
+// Ringbuffer capacity: a few hundred ms of audio to absorb jitter
+#define PCM_RB_CAPACITY   (BYTES_PER_MS * 400)                        // ~400ms
+
+static RingbufHandle_t s_pcm_rb = NULL;
+static TaskHandle_t s_uac_writer_task = NULL;
+static volatile bool s_uac_running = false;
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+static QueueHandle_t s_event_queue = NULL;
+static uac_host_device_handle_t s_spk_dev_handle = NULL;
+static uint32_t s_spk_curr_freq = DEFAULT_UAC_FREQ;
+static uint8_t s_spk_curr_bits = DEFAULT_UAC_BITS;
+static uint8_t s_spk_curr_ch = DEFAULT_UAC_CH;
+static void uac_device_callback(uac_host_device_handle_t uac_device_handle, const uac_host_device_event_t event, void *arg);
+static void uac_host_lib_callback(uint8_t addr, uint8_t iface_num, const uac_host_driver_event_t event, void *arg);
+static void uacSpeaker_Task(void *d_Service);
+static void usbSpeakerProcess_Task(void *d_Service);
+static void start_uac_pipeline(void);
+static void stop_uac_pipeline(void);
+static void uac_writer_task(void *arg);
+
+/**
+ * @brief event group
+ *
+ * APP_EVENT            - General control event
+ * UAC_DRIVER_EVENT     - UAC Host Driver event, such as device connection
+ * UAC_DEVICE_EVENT     - UAC Host Device event, such as rx/tx completion, device disconnection
+ */
+typedef enum {
+    APP_EVENT = 0,
+    UAC_DRIVER_EVENT,
+    UAC_DEVICE_EVENT,
+} event_group_t;
+
+/**
+ * @brief event queue
+ *
+ * This event is used for delivering the UAC Host event from callback to the uac_lib_task
+ */
+typedef struct {
+    event_group_t event_group;
+    union {
+        struct {
+            uint8_t addr;
+            uint8_t iface_num;
+            uac_host_driver_event_t event;
+            void *arg;
+        } driver_evt;
+        struct {
+            uac_host_device_handle_t handle;
+            uac_host_device_event_t event;
+            void *arg;
+        } device_evt;
+    };
+} s_event_queue_t;
 // 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 EXT_RAM_BSS_ATTR TimerHandle_t showRandomPatternTimer_H = NULL;
@@ -44,6 +124,7 @@ AUDIO_I2S_MODE_T audioOutMode = CONNECT_HOST;
 Audio *audio = nullptr;
 MTB_Audio *mtb_audioPlayer = nullptr;
 uint8_t mic_OR_dac = DISABLE_I2S_MIC_DAC;
+
 RawAudioData AudioSamplesTransport;
 //AUDIO_TEXT_DATA_T selectAudioText = AUDIO_INFO;
 AudioTextTransfer_T audioTextTransferBuffer;
@@ -53,8 +134,8 @@ uint8_t kMatrixWidth = 128; //   PANEL_WIDTH
 uint8_t kMatrixHeight = 64; // PANEL_HEIGHT
 int loopcounter = 0;
 
-// EXT_RAM_BSS_ATTR Mtb_Services *UAC_Speaker_Sv = new Mtb_Services(uacSpeaker_Task, &uac_task_handle, "uac_events", 4096, 2, pdTRUE, 0);
-// EXT_RAM_BSS_ATTR Mtb_Services *mtb_Usb_Audio_Sv = new Mtb_Services(usbSpeakerProcess_Task, &usbSpeakerProcess_Task_H, "Usb Aud Serv.", 4096, 5, pdTRUE, 0);
+EXT_RAM_BSS_ATTR Mtb_Services *UAC_Speaker_Sv = new Mtb_Services(uacSpeaker_Task, &uac_task_handle, "uac_events", 4096, 2, pdTRUE, 0);
+EXT_RAM_BSS_ATTR Mtb_Services *mtb_Usb_Audio_Sv = new Mtb_Services(usbSpeakerProcess_Task, &usbSpeakerProcess_Task_H, "Usb Aud Serv.", 4096, 5, pdTRUE, 0);
 EXT_RAM_BSS_ATTR Mtb_Services *mtb_Dac_N_Mic_Sv = new Mtb_Services(audioProcessing_Task, &audioProcessing_Task_H, "Aud Pro Serv.", 8192, 2, pdFALSE, 1);
 
 void audioProcessing_Task(void *d_Service){
@@ -65,7 +146,7 @@ void audioProcessing_Task(void *d_Service){
   mtb_Read_Nvs_Struct("dev_Volume", &deviceVolume, sizeof(uint8_t));
 
     // Array to store Original audio I2S input stream (reading in chunks, e.g. 1024 values) 
-    int16_t audio_buffer[1024];         // 1024 values [2048 bytes] <- for the original I2S signed 16bit stream 
+    int16_t audio_buffer[1024];   // 1024 values [2048 bytes] <- for the original I2S signed 16bit stream 
     // now reading the I2S input stream (with NEW <I2S_std.h>)
     size_t bytes_read = 0;
 //######################################################################################################################
@@ -238,104 +319,105 @@ void mtb_Use_Mic_Or_Dac(uint8_t mtb_i2s_Module){
     }
 }
 
-// void audio_info(const char *info){
-//     ESP_LOGI(TAG, "AudioI2S Info: %s \n",  info);
-//     // audioTextTransferBuffer.Audio_Text_type = AUDIO_INFO;
-//     // strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-//     // xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-// }
-// void audio_id3data(const char *info){  //id3 metadata
-//     //ESP_LOGI(TAG, "id3Data: %s \n",  info);
-//     audioTextTransferBuffer.Audio_Text_type = AUDIO_ID3DATA;
+// // void audio_info(const char *info){
+// //     ESP_LOGI(TAG, "AudioI2S Info: %s \n",  info);
+// //     // audioTextTransferBuffer.Audio_Text_type = AUDIO_INFO;
+// //     // strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     // xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// // void audio_id3data(const char *info){  //id3 metadata
+// //     //ESP_LOGI(TAG, "id3Data: %s \n",  info);
+// //     audioTextTransferBuffer.Audio_Text_type = AUDIO_ID3DATA;
+// //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// // void audio_eof_mp3(const char *info){  //end of mp3 file
+// //     //ESP_LOGI(TAG, "eof_mp3: %s \n",  info);
+// //     audioTextTransferBuffer.Audio_Text_type = AUDIO_EOF_MP3;
+// //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// void audio_showstation(const char *info){
+//     //ESP_LOGI(TAG, "Station: %s \n",  info);
+//     audioTextTransferBuffer.Audio_Text_type = AUDIO_SHOW_STATION;
 //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
 //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
 // }
-// void audio_eof_mp3(const char *info){  //end of mp3 file
-//     //ESP_LOGI(TAG, "eof_mp3: %s \n",  info);
-//     audioTextTransferBuffer.Audio_Text_type = AUDIO_EOF_MP3;
+// void audio_showstreamtitle(const char *info){
+//     //ESP_LOGI(TAG, "Stream Title: %s \n",  info);
+//     audioTextTransferBuffer.Audio_Text_type = AUDIO_SHOWS_STREAM_TITLE;
 //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
 //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
 // }
-void audio_showstation(const char *info){
-    //ESP_LOGI(TAG, "Station: %s \n",  info);
-    audioTextTransferBuffer.Audio_Text_type = AUDIO_SHOW_STATION;
-    strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-    xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-}
-void audio_showstreamtitle(const char *info){
-    //ESP_LOGI(TAG, "Stream Title: %s \n",  info);
-    audioTextTransferBuffer.Audio_Text_type = AUDIO_SHOWS_STREAM_TITLE;
-    strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-    xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-}
-// void audio_bitrate(const char *info){
-//     //ESP_LOGI(TAG, "Bitrate: %s \n",  info);
-//     audioTextTransferBuffer.Audio_Text_type = AUDIO_BITRATE;
+// // void audio_bitrate(const char *info){
+// //     //ESP_LOGI(TAG, "Bitrate: %s \n",  info);
+// //     audioTextTransferBuffer.Audio_Text_type = AUDIO_BITRATE;
+// //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// // void audio_commercial(const char *info){  //duration in sec
+// //     //ESP_LOGI(TAG, "Commercial: %s \n",  info);
+// //     audioTextTransferBuffer.Audio_Text_type = AUDIO_COMMERCIAL;
+// //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// // void audio_icyurl(const char *info){  //homepage
+// //     //ESP_LOGI(TAG, "ICYURL: %s \n",  info);
+// //     audioTextTransferBuffer.Audio_Text_type = AUDIO_ICYURL;
+// //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// // void audio_icydescription(const char* info){
+// //     //ESP_LOGI(TAG, "ICY DESCRIPTION: %s \n",  info);
+// //     audioTextTransferBuffer.Audio_Text_type = AUDIO_ICY_DESCRIPTION;
+// //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// // void audio_lasthost(const char *info){  //stream URL played
+// //     //ESP_LOGI(TAG, "LastHost: %s \n",  info);
+// //     audioTextTransferBuffer.Audio_Text_type = AUDIO_LASTHOST;
+// //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+// //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// // }
+// void audio_eof_speech(const char *info){
+//     ESP_LOGI(TAG, "End Of Speeach: %s \n",  info);
+//     audioTextTransferBuffer.Audio_Text_type = AUDIO_EOF_SPEECH;
 //     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
 //     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
 // }
-// void audio_commercial(const char *info){  //duration in sec
-//     //ESP_LOGI(TAG, "Commercial: %s \n",  info);
-//     audioTextTransferBuffer.Audio_Text_type = AUDIO_COMMERCIAL;
-//     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-//     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-// }
-// void audio_icyurl(const char *info){  //homepage
-//     //ESP_LOGI(TAG, "ICYURL: %s \n",  info);
-//     audioTextTransferBuffer.Audio_Text_type = AUDIO_ICYURL;
-//     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-//     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-// }
-// void audio_icydescription(const char* info){
-//     //ESP_LOGI(TAG, "ICY DESCRIPTION: %s \n",  info);
-//     audioTextTransferBuffer.Audio_Text_type = AUDIO_ICY_DESCRIPTION;
-//     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-//     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-// }
-// void audio_lasthost(const char *info){  //stream URL played
-//     //ESP_LOGI(TAG, "LastHost: %s \n",  info);
-//     audioTextTransferBuffer.Audio_Text_type = AUDIO_LASTHOST;
-//     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-//     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-// }
-void audio_eof_speech(const char *info){
-    ESP_LOGI(TAG, "End Of Speeach: %s \n",  info);
-    audioTextTransferBuffer.Audio_Text_type = AUDIO_EOF_SPEECH;
-    strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-    xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-}
 
-void audio_eof_stream(const char* info){     // The webstream comes to an end
-    ESP_LOGI(TAG, "End Of Stream: %s \n",  info);
-    audioTextTransferBuffer.Audio_Text_type = AUDIO_EOF_STREAM;
-    strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
-    xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
-} 
+// void audio_eof_stream(const char* info){     // The webstream comes to an end
+//     ESP_LOGI(TAG, "End Of Stream: %s \n",  info);
+//     audioTextTransferBuffer.Audio_Text_type = AUDIO_EOF_STREAM;
+//     strcpy(audioTextTransferBuffer.Audio_Text_Data, info);
+//     xQueueSend(audioTextInfo_Q, &audioTextTransferBuffer, 0);
+// } 
+
+// // void audio_id3image(File& file, const size_t pos, const size_t size){ //ID3 metadata image
+
+// // }
+
+// // void audio_id3lyrics(File& file, const size_t pos, const size_t size){ //ID3 metadata lyrics
+
+// // } 
 
 // void audio_process_i2s(int16_t* outBuff, uint16_t validSamples, uint8_t bitsPerSample, uint8_t channels, bool *continueI2S)
 // {
-//     // // Compute bytes in this callback block (treat validSamples as *frames*)
-//     // const size_t bytes_per_frame = channels * (bitsPerSample/8);
-//     // size_t len_bytes = (size_t)validSamples * bytes_per_frame;
+//     // Compute bytes in this callback block (treat validSamples as *frames*)
+//     const size_t bytes_per_frame = channels * (bitsPerSample/8);
+//     size_t len_bytes = (size_t)validSamples * bytes_per_frame;
 
-//     // // Non-blocking push to the ringbuffer; if full, we drop (or you can overwrite)
-//     // if (s_pcm_rb) {
-//     //     BaseType_t ok = xRingbufferSend(s_pcm_rb, outBuff, len_bytes, 0);
-//     //     (void)ok; // optional: log drop if !ok
-//     // }
+//     // Non-blocking push to the ringbuffer; if full, we drop (or you can overwrite)
+//     if (s_pcm_rb) {
+//         BaseType_t ok = xRingbufferSend(s_pcm_rb, outBuff, len_bytes, 0);
+//         (void)ok; // optional: log drop if !ok
+//     }
 
-//     // // If you only want USB output, set false. If you also want I2S DAC, keep true.
-//     // if (continueI2S) *continueI2S = true;
+//     // If you only want USB output, set false. If you also want I2S DAC, keep true.
+//     if (continueI2S) *continueI2S = false;
 // }
 
 
-// void audio_id3image(File& file, const size_t pos, const size_t size){ //ID3 metadata image
-
-// }
-
-// void audio_id3lyrics(File& file, const size_t pos, const size_t size){ //ID3 metadata lyrics
-
-// } 
 
 void audioVisualizer(){
     AudioSamplesTransport.audioSampleLength_bytes /= 2;
@@ -641,347 +723,266 @@ bool MTB_Audio::mtb_ConnectToUSB_FS( const char *path, int32_t m_fileStartPos){
   return (bool) contdSucceed;
 }
 
-// #include "usb/usb_host.h"
-// #include "usb/uac_host.h"
-
-// //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-// //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
-// //static const char *TAG = "UAC_PIPE";
-
-// // ---- Audio format (match what you opened the speaker with) ----
-// #define USB_SRATE_HZ        48000
-// #define USB_BITS_PER_SAMPLE 16
-// #define USB_CHANNELS        2
-
-// #define UAC_TASK_PRIORITY       5
-// #define DEFAULT_UAC_FREQ        48000
-// #define DEFAULT_UAC_BITS        16
-// #define DEFAULT_UAC_CH          2
-
-// // Derived sizes
-// #define BYTES_PER_FRAME   (USB_CHANNELS * (USB_BITS_PER_SAMPLE/8))   // 4
-// #define BYTES_PER_MS      ((USB_SRATE_HZ/1000) * BYTES_PER_FRAME)    // 192
-
-// // How many 1ms packets per USB transfer we push at once
-// #ifndef PACKETS_PER_XFER
-// #define PACKETS_PER_XFER  4                                          // 4ms => 768B
-// #endif
-// #define XFER_BYTES        (BYTES_PER_MS * PACKETS_PER_XFER)           // 768
-
-// // Ringbuffer capacity: a few hundred ms of audio to absorb jitter
-// #define PCM_RB_CAPACITY   (BYTES_PER_MS * 400)                        // ~400ms
-
-// static RingbufHandle_t s_pcm_rb = NULL;
-// static TaskHandle_t s_uac_writer_task = NULL;
-// static volatile bool s_uac_running = false;
-// //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// static QueueHandle_t s_event_queue = NULL;
-// static uac_host_device_handle_t s_spk_dev_handle = NULL;
-// static uint32_t s_spk_curr_freq = DEFAULT_UAC_FREQ;
-// static uint8_t s_spk_curr_bits = DEFAULT_UAC_BITS;
-// static uint8_t s_spk_curr_ch = DEFAULT_UAC_CH;
-// static void uac_device_callback(uac_host_device_handle_t uac_device_handle, const uac_host_device_event_t event, void *arg);
-// static void uac_host_lib_callback(uint8_t addr, uint8_t iface_num, const uac_host_driver_event_t event, void *arg);
-// static void uacSpeaker_Task(void *d_Service);
-// static void start_uac_pipeline(void);
-// static void stop_uac_pipeline(void);
-// static void uac_writer_task(void *arg);
-
-// /**
-//  * @brief event group
-//  *
-//  * APP_EVENT            - General control event
-//  * UAC_DRIVER_EVENT     - UAC Host Driver event, such as device connection
-//  * UAC_DEVICE_EVENT     - UAC Host Device event, such as rx/tx completion, device disconnection
-//  */
-// typedef enum {
-//     APP_EVENT = 0,
-//     UAC_DRIVER_EVENT,
-//     UAC_DEVICE_EVENT,
-// } event_group_t;
-
-// /**
-//  * @brief event queue
-//  *
-//  * This event is used for delivering the UAC Host event from callback to the uac_lib_task
-//  */
-// typedef struct {
-//     event_group_t event_group;
-//     union {
-//         struct {
-//             uint8_t addr;
-//             uint8_t iface_num;
-//             uac_host_driver_event_t event;
-//             void *arg;
-//         } driver_evt;
-//         struct {
-//             uac_host_device_handle_t handle;
-//             uac_host_device_event_t event;
-//             void *arg;
-//         } device_evt;
-//     };
-// } s_event_queue_t;
-
-
-// // static esp_err_t _audio_player_write_fn(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms)
-// // {
-// //     if (s_spk_dev_handle == NULL) {
-// //         return ESP_ERR_INVALID_STATE;
-// //     }
-// //     *bytes_written = 0;
-// //     esp_err_t ret = uac_host_device_write(s_spk_dev_handle, audio_buffer, len, timeout_ms);
-// //     if (ret == ESP_OK) {
-// //         *bytes_written = len;
-// //     }
-// //     return ret;
-// // }
-
-
-// void usbSpeakerProcess_Task(void *d_Service){
-//   Mtb_Services *thisServ = (Mtb_Services *)d_Service;
-
-//     s_event_queue = xQueueCreate(10, sizeof(s_event_queue_t));
-//     assert(s_event_queue != NULL);
 
 
 
-//     const usb_host_config_t host_config = {
-//         .skip_phy_setup = false,
-//         .intr_flags = ESP_INTR_FLAG_LEVEL1,
-//     };
-
-//     ESP_ERROR_CHECK(usb_host_install(&host_config));
-//     ESP_LOGI(TAG, "USB Host installed");
-
-//     mtb_Start_This_Service(UAC_Speaker_Sv);
-//     delay(100);
-//     xTaskNotifyGive(uac_task_handle);
-
-//     while (MTB_SERV_IS_ACTIVE == pdTRUE) {
-//         uint32_t event_flags;
-//         usb_host_lib_handle_events(portMAX_DELAY, &event_flags);
-//         // In this example, there is only one client registered
-//         // So, once we deregister the client, this call must succeed with ESP_OK
-//         if (event_flags & USB_HOST_LIB_EVENT_FLAGS_NO_CLIENTS) {
-//             ESP_ERROR_CHECK(usb_host_device_free_all());
-//             break;
-//         }
-//     }
-
-//     mtb_End_This_Service(UAC_Speaker_Sv);
-
-//     ESP_LOGI(TAG, "USB Host shutdown");
-//     // Clean up USB Host
-//     vTaskDelay(10); // Short delay to allow clients clean-up
-//     ESP_ERROR_CHECK(usb_host_uninstall());
-
-// mtb_End_This_Service(thisServ);
-
-// }
-
-// static void uac_device_callback(uac_host_device_handle_t uac_device_handle, const uac_host_device_event_t event, void *arg)
+// static esp_err_t _audio_player_write_fn(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms)
 // {
-//     if (event == UAC_HOST_DRIVER_EVENT_DISCONNECTED) {
-//         // stop audio player first
-//         s_spk_dev_handle = NULL;
-//         //audio_player_stop();
-//         ESP_LOGI(TAG, "UAC Device disconnected");
-//         ESP_ERROR_CHECK(uac_host_device_close(uac_device_handle));
-//         return;
+//     if (s_spk_dev_handle == NULL) {
+//         return ESP_ERR_INVALID_STATE;
 //     }
-//     // Send uac device event to the event queue
-//     s_event_queue_t evt_queue = {};
-//         evt_queue.event_group = UAC_DEVICE_EVENT;
-//         evt_queue.device_evt.handle = uac_device_handle;
-//         evt_queue.device_evt.event = event;
-//         evt_queue.device_evt.arg = arg;
-//     // should not block here
-//     xQueueSend(s_event_queue, &evt_queue, 0);
-// }
-
-// static void uac_host_lib_callback(uint8_t addr, uint8_t iface_num, const uac_host_driver_event_t event, void *arg)
-// {
-//     // Send uac driver event to the event queue
-//     s_event_queue_t evt_queue = {};
-//         evt_queue.event_group = UAC_DRIVER_EVENT;
-//         evt_queue.driver_evt.addr = addr;
-//         evt_queue.driver_evt.iface_num = iface_num;
-//         evt_queue.driver_evt.event = event;
-//         evt_queue.driver_evt.arg = arg;
-//     xQueueSend(s_event_queue, &evt_queue, 0);
-// }
-
-// void uacSpeaker_Task(void *d_Service){
-//     Mtb_Services *thisServ = (Mtb_Services *)d_Service;
-
-//     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-//     uac_host_driver_config_t uac_config = {
-//         .create_background_task = true,
-//         .task_priority = UAC_TASK_PRIORITY,
-//         .stack_size = 4096,
-//         .core_id = 0,
-//         .callback = uac_host_lib_callback,
-//         .callback_arg = NULL
-//     };
-
-//     ESP_ERROR_CHECK(uac_host_install(&uac_config));
-//     ESP_LOGI(TAG, "UAC Class Driver installed");
-//     s_event_queue_t evt_queue = { .event_group = (event_group_t)0 };
-//         while (MTB_SERV_IS_ACTIVE == pdTRUE) {
-//         if (xQueueReceive(s_event_queue, &evt_queue, portMAX_DELAY)) {
-//             if (UAC_DRIVER_EVENT ==  evt_queue.event_group) {
-//                 uac_host_driver_event_t event = evt_queue.driver_evt.event;
-//                 uint8_t addr = evt_queue.driver_evt.addr;
-//                 uint8_t iface_num = evt_queue.driver_evt.iface_num;
-//                 switch (event) {
-//                 case UAC_HOST_DRIVER_EVENT_TX_CONNECTED: {
-//                     uac_host_dev_info_t dev_info;
-//                     uac_host_device_handle_t uac_device_handle = NULL;
-//                     const uac_host_device_config_t dev_config = {
-//                         .addr = addr,
-//                         .iface_num = iface_num,
-//                         .buffer_size = 16000,
-//                         .buffer_threshold = 4000,
-//                         .callback = uac_device_callback,
-//                         .callback_arg = NULL,
-//                     };
-//                     ESP_ERROR_CHECK(uac_host_device_open(&dev_config, &uac_device_handle));
-//                     ESP_ERROR_CHECK(uac_host_get_device_info(uac_device_handle, &dev_info));
-//                     ESP_LOGI(TAG, "UAC Device connected: SPK");
-//                     uac_host_printf_device_param(uac_device_handle);
-//                     // Start usb speaker with the default configuration
-//                     const uac_host_stream_config_t stm_config = {
-//                         .channels = s_spk_curr_ch,
-//                         .bit_resolution = s_spk_curr_bits,
-//                         .sample_freq = s_spk_curr_freq,
-//                     };
-//                     ESP_ERROR_CHECK(uac_host_device_start(uac_device_handle, &stm_config));
-//                     s_spk_dev_handle = uac_device_handle;
-
-//                     start_uac_pipeline();
-//                     break;
-//                 }
-//                 case UAC_HOST_DRIVER_EVENT_RX_CONNECTED: {
-//                     // we don't support MIC in this example
-//                     ESP_LOGI(TAG, "UAC Device connected: MIC");
-//                     break;
-//                 }
-//                 default:
-//                     break;
-//                 }
-//             } else if (UAC_DEVICE_EVENT == evt_queue.event_group) {
-//                 uac_host_device_event_t event = evt_queue.device_evt.event;
-//                 switch (event) {
-//                 case UAC_HOST_DRIVER_EVENT_DISCONNECTED:
-//                     s_spk_curr_bits = DEFAULT_UAC_BITS;
-//                     s_spk_curr_freq = DEFAULT_UAC_FREQ;
-//                     s_spk_curr_ch = DEFAULT_UAC_CH;
-//                     ESP_LOGI(TAG, "UAC Device disconnected");
-//                     stop_uac_pipeline();
-//                     break;
-//                 case UAC_HOST_DEVICE_EVENT_RX_DONE:
-//                     break;
-//                 case UAC_HOST_DEVICE_EVENT_TX_DONE:
-//                     break;
-//                 case UAC_HOST_DEVICE_EVENT_TRANSFER_ERROR:
-//                     break;
-//                 default:
-//                     break;
-//                 }
-//             } else if (APP_EVENT == evt_queue.event_group) {
-//                 break;
-//             }
-//         }
+//     *bytes_written = 0;
+//     esp_err_t ret = uac_host_device_write(s_spk_dev_handle, audio_buffer, len, timeout_ms);
+//     if (ret == ESP_OK) {
+//         *bytes_written = len;
 //     }
-
-//     ESP_LOGI(TAG, "UAC Driver uninstall");
-//     ESP_ERROR_CHECK(uac_host_uninstall());
-//     delay(50);  // allow uac memory cleanup
-
-//     mtb_End_This_Service(thisServ);
+//     return ret;
 // }
 
 
-// static void uac_writer_task(void *arg)
-// {
-//     // Small staging buffer to ensure exact xfer sizes
-//     uint8_t *acc = (uint8_t*)heap_caps_malloc(XFER_BYTES, MALLOC_CAP_8BIT);
-//     size_t   acc_len = 0;
+void usbSpeakerProcess_Task(void *d_Service){
+  Mtb_Services *thisServ = (Mtb_Services *)d_Service;
 
-//     // Prebuilt 768-byte silence block for underruns
-//     static uint8_t silence[XFER_BYTES] = {0};
-
-//     const TickType_t write_timeout = pdMS_TO_TICKS(10);
-//     s_uac_running = true;
-
-//     while (s_uac_running) {
-//         // 1) Top up the accumulator from ringbuffer
-//         if (acc_len < XFER_BYTES) {
-//             size_t got = 0;
-//             uint8_t *blk = NULL;
-
-//             // Pull up to what we need to fill a xfer (non-busy wait)
-//             blk = (uint8_t*)xRingbufferReceiveUpTo(
-//                     s_pcm_rb, &got, pdMS_TO_TICKS(20), XFER_BYTES - acc_len);
-
-//             if (blk && got) {
-//                 memcpy(acc + acc_len, blk, got);
-//                 acc_len += got;
-//                 vRingbufferReturnItem(s_pcm_rb, blk);
-//             }
-//         }
-
-//         // 2) If not enough data, send silence to keep steady isoch cadence
-//         if (acc_len < XFER_BYTES) {
-//             if (s_spk_dev_handle) {
-//                 esp_err_t e = uac_host_device_write(s_spk_dev_handle, silence, XFER_BYTES, write_timeout);
-//                 (void)e; // optional: log if e != ESP_OK
-//             }
-//             continue; // try again to fill acc
-//         }
-
-//         // 3) We have a full XFER_BYTES chunk — write it
-//         if (s_spk_dev_handle) {
-//             esp_err_t e = uac_host_device_write(s_spk_dev_handle, acc, XFER_BYTES, write_timeout);
-//             if (e != ESP_OK) {
-//                 // If this happens repeatedly, consider backing off or resetting acc_len
-//                 // ESP_LOGW(TAG, "uac write failed: %d", e);
-//             }
-//         }
-
-//         // 4) Reset accumulator
-//         acc_len = 0;
-//     }
-
-//     free(acc);
-//     vTaskDelete(NULL);
-// }
+    s_event_queue = xQueueCreate(10, sizeof(s_event_queue_t));
+    assert(s_event_queue != NULL);
 
 
-// static void start_uac_pipeline(void)
-// {
-//     if (!s_pcm_rb) {
-//         s_pcm_rb = xRingbufferCreate(PCM_RB_CAPACITY, RINGBUF_TYPE_BYTEBUF);
-//     }
-//     if (!s_uac_writer_task) {
-//         xTaskCreatePinnedToCore(uac_writer_task, "uac_wr", 4096, NULL, 5, &s_uac_writer_task, tskNO_AFFINITY);
-//     }
-// }
 
-// static void stop_uac_pipeline(void)
-// {
-//     s_uac_running = false;
-//     if (s_uac_writer_task) {
-//         TaskHandle_t t = s_uac_writer_task;
-//         s_uac_writer_task = NULL;
-//         // Give the task a moment to exit
-//         vTaskDelay(pdMS_TO_TICKS(20));
-//         // (It self-deletes; no vTaskDelete here unless you prefer hard kill)
-//     }
-//     if (s_pcm_rb) {
-//         vRingbufferDelete(s_pcm_rb);
-//         s_pcm_rb = NULL;
-//     }
-// }
+    const usb_host_config_t host_config = {
+        .skip_phy_setup = false,
+        .intr_flags = ESP_INTR_FLAG_LEVEL1,
+    };
+
+    ESP_ERROR_CHECK(usb_host_install(&host_config));
+    ESP_LOGI(TAG, "USB Host installed");
+
+    mtb_Start_This_Service(UAC_Speaker_Sv);
+    delay(100);
+    xTaskNotifyGive(uac_task_handle);
+
+    while (MTB_SERV_IS_ACTIVE == pdTRUE) {
+        uint32_t event_flags;
+        usb_host_lib_handle_events(portMAX_DELAY, &event_flags);
+        // In this example, there is only one client registered
+        // So, once we deregister the client, this call must succeed with ESP_OK
+        if (event_flags & USB_HOST_LIB_EVENT_FLAGS_NO_CLIENTS) {
+            ESP_ERROR_CHECK(usb_host_device_free_all());
+            break;
+        }
+    }
+
+    mtb_End_This_Service(UAC_Speaker_Sv);
+
+    ESP_LOGI(TAG, "USB Host shutdown");
+    // Clean up USB Host
+    vTaskDelay(10); // Short delay to allow clients clean-up
+    ESP_ERROR_CHECK(usb_host_uninstall());
+
+mtb_End_This_Service(thisServ);
+
+}
+
+static void uac_device_callback(uac_host_device_handle_t uac_device_handle, const uac_host_device_event_t event, void *arg)
+{
+    if (event == UAC_HOST_DRIVER_EVENT_DISCONNECTED) {
+        // stop audio player first
+        s_spk_dev_handle = NULL;
+        //audio_player_stop();
+        ESP_LOGI(TAG, "UAC Device disconnected");
+        ESP_ERROR_CHECK(uac_host_device_close(uac_device_handle));
+        return;
+    }
+    // Send uac device event to the event queue
+    s_event_queue_t evt_queue = {};
+        evt_queue.event_group = UAC_DEVICE_EVENT;
+        evt_queue.device_evt.handle = uac_device_handle;
+        evt_queue.device_evt.event = event;
+        evt_queue.device_evt.arg = arg;
+    // should not block here
+    xQueueSend(s_event_queue, &evt_queue, 0);
+}
+
+static void uac_host_lib_callback(uint8_t addr, uint8_t iface_num, const uac_host_driver_event_t event, void *arg)
+{
+    // Send uac driver event to the event queue
+    s_event_queue_t evt_queue = {};
+        evt_queue.event_group = UAC_DRIVER_EVENT;
+        evt_queue.driver_evt.addr = addr;
+        evt_queue.driver_evt.iface_num = iface_num;
+        evt_queue.driver_evt.event = event;
+        evt_queue.driver_evt.arg = arg;
+    xQueueSend(s_event_queue, &evt_queue, 0);
+}
+
+void uacSpeaker_Task(void *d_Service){
+    Mtb_Services *thisServ = (Mtb_Services *)d_Service;
+
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    uac_host_driver_config_t uac_config = {
+        .create_background_task = true,
+        .task_priority = UAC_TASK_PRIORITY,
+        .stack_size = 4096,
+        .core_id = 0,
+        .callback = uac_host_lib_callback,
+        .callback_arg = NULL
+    };
+
+    ESP_ERROR_CHECK(uac_host_install(&uac_config));
+    ESP_LOGI(TAG, "UAC Class Driver installed");
+    s_event_queue_t evt_queue = { .event_group = (event_group_t)0 };
+        while (MTB_SERV_IS_ACTIVE == pdTRUE) {
+        if (xQueueReceive(s_event_queue, &evt_queue, portMAX_DELAY)) {
+            if (UAC_DRIVER_EVENT ==  evt_queue.event_group) {
+                uac_host_driver_event_t event = evt_queue.driver_evt.event;
+                uint8_t addr = evt_queue.driver_evt.addr;
+                uint8_t iface_num = evt_queue.driver_evt.iface_num;
+                switch (event) {
+                case UAC_HOST_DRIVER_EVENT_TX_CONNECTED: {
+                    uac_host_dev_info_t dev_info;
+                    uac_host_device_handle_t uac_device_handle = NULL;
+                    const uac_host_device_config_t dev_config = {
+                        .addr = addr,
+                        .iface_num = iface_num,
+                        .buffer_size = 16000,
+                        .buffer_threshold = 4000,
+                        .callback = uac_device_callback,
+                        .callback_arg = NULL,
+                    };
+                    ESP_ERROR_CHECK(uac_host_device_open(&dev_config, &uac_device_handle));
+                    ESP_ERROR_CHECK(uac_host_get_device_info(uac_device_handle, &dev_info));
+                    ESP_LOGI(TAG, "UAC Device connected: SPK");
+                    uac_host_printf_device_param(uac_device_handle);
+                    // Start usb speaker with the default configuration
+                    const uac_host_stream_config_t stm_config = {
+                        .channels = s_spk_curr_ch,
+                        .bit_resolution = s_spk_curr_bits,
+                        .sample_freq = s_spk_curr_freq,
+                    };
+                    ESP_ERROR_CHECK(uac_host_device_start(uac_device_handle, &stm_config));
+                    s_spk_dev_handle = uac_device_handle;
+
+                    start_uac_pipeline();
+                    break;
+                }
+                case UAC_HOST_DRIVER_EVENT_RX_CONNECTED: {
+                    // we don't support MIC in this example
+                    ESP_LOGI(TAG, "UAC Device connected: MIC");
+                    break;
+                }
+                default:
+                    break;
+                }
+            } else if (UAC_DEVICE_EVENT == evt_queue.event_group) {
+                uac_host_device_event_t event = evt_queue.device_evt.event;
+                switch (event) {
+                case UAC_HOST_DRIVER_EVENT_DISCONNECTED:
+                    s_spk_curr_bits = DEFAULT_UAC_BITS;
+                    s_spk_curr_freq = DEFAULT_UAC_FREQ;
+                    s_spk_curr_ch = DEFAULT_UAC_CH;
+                    ESP_LOGI(TAG, "UAC Device disconnected");
+                    stop_uac_pipeline();
+                    break;
+                case UAC_HOST_DEVICE_EVENT_RX_DONE:
+                    break;
+                case UAC_HOST_DEVICE_EVENT_TX_DONE:
+                    break;
+                case UAC_HOST_DEVICE_EVENT_TRANSFER_ERROR:
+                    break;
+                default:
+                    break;
+                }
+            } else if (APP_EVENT == evt_queue.event_group) {
+                break;
+            }
+        }
+    }
+
+    ESP_LOGI(TAG, "UAC Driver uninstall");
+    ESP_ERROR_CHECK(uac_host_uninstall());
+    delay(50);  // allow uac memory cleanup
+
+    mtb_End_This_Service(thisServ);
+}
+
+
+static void uac_writer_task(void *arg)
+{
+    // Small staging buffer to ensure exact xfer sizes
+    uint8_t *acc = (uint8_t*)heap_caps_malloc(XFER_BYTES, MALLOC_CAP_8BIT);
+    size_t   acc_len = 0;
+
+    // Prebuilt 768-byte silence block for underruns
+    static uint8_t silence[XFER_BYTES] = {0};
+
+    const TickType_t write_timeout = pdMS_TO_TICKS(10);
+    s_uac_running = true;
+
+    while (s_uac_running) {
+        // 1) Top up the accumulator from ringbuffer
+        if (acc_len < XFER_BYTES) {
+            size_t got = 0;
+            uint8_t *blk = NULL;
+
+            // Pull up to what we need to fill a xfer (non-busy wait)
+            blk = (uint8_t*)xRingbufferReceiveUpTo(
+                    s_pcm_rb, &got, pdMS_TO_TICKS(20), XFER_BYTES - acc_len);
+
+            if (blk && got) {
+                memcpy(acc + acc_len, blk, got);
+                acc_len += got;
+                vRingbufferReturnItem(s_pcm_rb, blk);
+            }
+        }
+
+        // 2) If not enough data, send silence to keep steady isoch cadence
+        if (acc_len < XFER_BYTES) {
+            if (s_spk_dev_handle) {
+                esp_err_t e = uac_host_device_write(s_spk_dev_handle, silence, XFER_BYTES, write_timeout);
+                (void)e; // optional: log if e != ESP_OK
+            }
+            continue; // try again to fill acc
+        }
+
+        // 3) We have a full XFER_BYTES chunk — write it
+        if (s_spk_dev_handle) {
+            esp_err_t e = uac_host_device_write(s_spk_dev_handle, acc, XFER_BYTES, write_timeout);
+            if (e != ESP_OK) {
+                // If this happens repeatedly, consider backing off or resetting acc_len
+                // ESP_LOGW(TAG, "uac write failed: %d", e);
+            }
+        }
+
+        // 4) Reset accumulator
+        acc_len = 0;
+    }
+
+    free(acc);
+    vTaskDelete(NULL);
+}
+
+
+static void start_uac_pipeline(void)
+{
+    if (!s_pcm_rb) {
+        s_pcm_rb = xRingbufferCreate(PCM_RB_CAPACITY, RINGBUF_TYPE_BYTEBUF);
+    }
+    if (!s_uac_writer_task) {
+        xTaskCreatePinnedToCore(uac_writer_task, "uac_wr", 4096, NULL, 5, &s_uac_writer_task, tskNO_AFFINITY);
+    }
+}
+
+static void stop_uac_pipeline(void)
+{
+    s_uac_running = false;
+    if (s_uac_writer_task) {
+        TaskHandle_t t = s_uac_writer_task;
+        s_uac_writer_task = NULL;
+        // Give the task a moment to exit
+        vTaskDelay(pdMS_TO_TICKS(20));
+        // (It self-deletes; no vTaskDelete here unless you prefer hard kill)
+    }
+    if (s_pcm_rb) {
+        vRingbufferDelete(s_pcm_rb);
+        s_pcm_rb = NULL;
+    }
+}

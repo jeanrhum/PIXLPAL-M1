@@ -24,10 +24,9 @@
 #define REC_DURATION_SECONDS_MAX 15
 #define REC_DURATION_BYTES_MAX 500000  // 15+ SECONDS, 16BIT, 16000HZ
 
-
 static const char *TAG = "PIXP_CHAT_GPT";
 
-    struct psRamWavFileChatGPT{
+struct psRamWavFileChatGPT{
     uint8_t* psRamFile_P;
     size_t psRamFile_Size;
 };
@@ -64,10 +63,6 @@ void delete_file(const char *path) {
     }
 }
 
-OpenAI openai(openai_key);
-OpenAI_ChatCompletion chat(openai);
-
-
 EXT_RAM_BSS_ATTR Mtb_Services *Audio_Listening_Sv = new Mtb_Services(micAudioListen_Task, &micAudioListen_Task_H, "Aud listen Serv", 4096);
 EXT_RAM_BSS_ATTR Mtb_Applications_StatusBar *chatGPT_App = new Mtb_Applications_StatusBar(chatGPT_App_Task, &chatGPT_Task_H, "chatGPT App", 10240); // Review down this stack size later.
 
@@ -83,6 +78,9 @@ void  chatGPT_App_Task(void* dApplication){
   //**************************************************************************************************************************
   humanSpeech = new Mtb_ScrollText_t (11, 45, 116, Terminal6x8, CYAN, 25, 20000,  0);
   aiResponse = new Mtb_ScrollText_t(11, 55, 116, Terminal6x8, YELLOW, 15, 3, 0);
+
+  OpenAI openai(openai_key);            // REVIST -> Statement moved from global to local scope
+  OpenAI_ChatCompletion chat(openai);   // REVIST -> Statement moved from global to local scope
 
   if(chatPrompt_Queue_H == NULL) chatPrompt_Queue_H = xQueueCreate(3, sizeof(psRamWavFileChatGPT));
   if(chatPromptTimer_H == NULL) chatPromptTimer_H = xTimerCreate("chatPrompt Timer", pdMS_TO_TICKS(1000), true, NULL, chatPrompt_TimerCallback);
@@ -211,7 +209,7 @@ void Listen_Process_Button(button_event_t button_Data){
     case 1:
         break;
     case 2:
-        chat.clearConversation();
+        //chat.clearConversation();   // REVISIT -> This line clears the last conversation memory when button is pressed. But now, "chat" is no longer a global variable.
         aiResponse->mtb_Scroll_This_Text("Conversation cleared.");
         break;
     case 3:

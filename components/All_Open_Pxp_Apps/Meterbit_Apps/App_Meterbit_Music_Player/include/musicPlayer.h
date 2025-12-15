@@ -10,7 +10,7 @@
 static const char musicPlayerAppRoute[] = "9/1";
 
 struct MusicPlayer_Data_t {
-uint16_t trackNumber = 1;
+uint16_t trackNumber;
 };
 
 extern MusicPlayer_Data_t musicPlayerData;

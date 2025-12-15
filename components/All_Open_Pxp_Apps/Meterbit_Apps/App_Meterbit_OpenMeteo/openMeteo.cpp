@@ -13,9 +13,7 @@
 
 // CONSIDER IMPLEMENTING AN APP USING THE https://api.met.no/ API SERVICE PROVIDER
 
-OpenMeteoData_t currentOpenMeteoData = {
-    "Lagos, Nigeria"
-};
+EXT_RAM_BSS_ATTR OpenMeteoData_t currentOpenMeteoData;
 
 EXT_RAM_BSS_ATTR TaskHandle_t openMeteo_Task_H = NULL;
 void openMeteoUpdate_App_Task(void *);
@@ -36,6 +34,7 @@ void openMeteoUpdate_App_Task(void* dApplication){
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setOpenMeteoLocation);
   mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
   //************************************************************************************ */
+  currentOpenMeteoData = (OpenMeteoData_t){"Lagos, Nigeria"};
   mtb_Read_Nvs_Struct("openMeteo", &currentOpenMeteoData, sizeof(OpenMeteoData_t));
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {

@@ -12,7 +12,7 @@
 #include "studioLight.h"
 #include "mtb_buzzer.h"
 
-StudioLight_Data_t studioLightsInfo;
+EXT_RAM_BSS_ATTR StudioLight_Data_t studioLightsInfo;
 EXT_RAM_BSS_ATTR SemaphoreHandle_t studioLightMode_Sem_H = NULL;
 
 EXT_RAM_BSS_ATTR TaskHandle_t studioLight_Task_H = NULL;
@@ -39,6 +39,10 @@ void studioLight_App_Task(void* dApplication){
   //************************************************************************************ */
     if(studioLightMode_Sem_H == NULL) studioLightMode_Sem_H = xSemaphoreCreateBinary();
 
+    studioLightsInfo = (StudioLight_Data_t){
+        {WHITE, PURPLE, GREEN, YELLOW, BLUE},
+        FULLSCREEN_MODE,
+        100};
 
     mtb_Read_Nvs_Struct("studioLight", &studioLightsInfo, sizeof(StudioLight_Data_t));
 

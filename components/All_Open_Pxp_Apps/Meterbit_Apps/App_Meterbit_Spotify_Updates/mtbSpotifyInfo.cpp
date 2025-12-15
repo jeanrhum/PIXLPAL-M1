@@ -25,12 +25,10 @@ char* spotify_root_ca;
 
 //*************************************************************************************************** */
 
-Spotify_Data_t userSpotify = {
-    "no_Refresh_Token_Saved_Yet"
-};
+EXT_RAM_BSS_ATTR Spotify_Data_t userSpotify;
 
-TaskHandle_t spotify_Task_H = NULL;
-TaskHandle_t screenUpdates_Task_H = NULL; 
+EXT_RAM_BSS_ATTR TaskHandle_t spotify_Task_H = NULL;
+EXT_RAM_BSS_ATTR TaskHandle_t screenUpdates_Task_H = NULL; 
 void spotify_App_Task(void *);
 void performScreenUpdate_Task( void * pvParameters );
 
@@ -47,6 +45,10 @@ void  spotify_App_Task(void* dApplication){
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(link_Spotify, get_Spotify_Refresh_Token);
   mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
 //**************************************************************************************************************************************************************** */
+
+    userSpotify = (Spotify_Data_t){
+      "no_Refresh_Token_Saved_Yet"
+  };
 
   // Open the .txt file from SPIFFS
   File file = LittleFS.open("/rootCert/spotifyCA.crt", "r");

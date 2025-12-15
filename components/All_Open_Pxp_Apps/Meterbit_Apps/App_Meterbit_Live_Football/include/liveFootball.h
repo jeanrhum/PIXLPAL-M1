@@ -18,9 +18,9 @@ static const char liveFootbalAppRoute[] = "5/0";
 //static const char *api_fooball_token_key = "insert_your_api_key_here";
 
 struct LiveFootball_Data_t {
-  uint8_t endpointType = 0; // 0: Fixture; 1: Standings
-  uint16_t leagueID = 39; // Default league ID for API-Football
-  char userAPI_Token[100] = {0}; // User's API token for authentication
+  uint8_t endpointType; // 0: Fixture; 1: Standings
+  uint16_t leagueID; // Default league ID for API-Football
+  char userAPI_Token; // User's API token for authentication
 };
 
 extern LiveFootball_Data_t liveFootballData;

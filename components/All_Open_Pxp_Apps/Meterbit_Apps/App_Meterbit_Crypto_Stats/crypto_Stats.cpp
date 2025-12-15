@@ -13,21 +13,15 @@ static const char TAG[] = "CRYPTO_STATS";
 #define MAX_COINS 100
 
 // Default CryptoCurrency
-Crypto_Stat_t currentCryptoCurrency = {
-    "bitcoin",
-    "btc",
-    "usd",
-    "/crypto/cryptIcon_1.png",
-    "get free key @ https://coincap.io/api-key",
-    30
-};
+EXT_RAM_BSS_ATTR Crypto_Stat_t currentCryptoCurrency;
 
 EXT_RAM_BSS_ATTR SemaphoreHandle_t changeDispCrypto_Sem = NULL;
 EXT_RAM_BSS_ATTR TimerHandle_t cryptoChangeTimer_H = NULL;
 int8_t cryptoIterate = 0;
 
-String cryptoSymbols[MAX_COINS];
-String cryptoIDs[MAX_COINS];
+EXT_RAM_BSS_ATTR String cryptoSymbols[MAX_COINS];
+EXT_RAM_BSS_ATTR String cryptoIDs[MAX_COINS];
+
 int cryptoCount = 0;
 static const char cryptoSymbolsFilePath[] = "/crypto/dCrypto.csv";
 static const char cryptoIDsFilePath[] = "/crypto/dCryptoID.csv";
@@ -52,6 +46,14 @@ void cryptoStats_App_Task(void* dApplication){
   //mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(showParticularCrypto, add_RemoveCryptoSymbol, setCryptoChangeInterval, setCrytoAPI_key);
   mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
   //************************************************************************************ */
+    currentCryptoCurrency = (Crypto_Stat_t){
+        "bitcoin",
+        "btc",
+        "usd",
+        "/crypto/cryptIcon_1.png",
+        "get free key @ https://coincap.io/api-key",
+        30
+    };
   mtb_Read_Nvs_Struct("cryptoCur", &currentCryptoCurrency, sizeof(Crypto_Stat_t));
   if(changeDispCrypto_Sem == NULL) changeDispCrypto_Sem = xSemaphoreCreateBinary();
   if(cryptoChangeTimer_H == NULL) cryptoChangeTimer_H = xTimerCreate("cryptoIntvTim", pdMS_TO_TICKS(currentCryptoCurrency.cryptoChangeInterval>0 ? (currentCryptoCurrency.cryptoChangeInterval * 1000) : (30 * 1000)), true, NULL, crytoChange_TimerCallback);

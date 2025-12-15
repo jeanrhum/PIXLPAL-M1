@@ -25,9 +25,7 @@
 
 static const char *TAG = "PXP_GOOGLE_CAL";
 
-GoogleCal_Data_t userGoogleCal = {
-    "no_Refresh_Token_Saved_Yet"
-};
+EXT_RAM_BSS_ATTR GoogleCal_Data_t userGoogleCal;
 
 // === User Settings ===
 // Modify these flags to show/hide specific data
@@ -67,7 +65,7 @@ bool showTaskNotes      = true;
 void googleCalButtonControl(button_event_t){}
 //*************************************************************************************************** */
 
-  TaskHandle_t googleCal_Task_H = NULL;
+  EXT_RAM_BSS_ATTR TaskHandle_t googleCal_Task_H = NULL;
   //TaskHandle_t screenUpdates_Task_H = NULL; 
   void googleCal_App_Task(void *);
   //void performScreenUpdate_Task( void * pvParameters );
@@ -106,6 +104,11 @@ void  googleCal_App_Task(void* dApplication){
   event_Task_Status_2 = new Mtb_FixedText_t(80, 55, Terminal4x6, SANDY_BROWN);
   
   String googleCalendarRefreshTokener;
+
+  userGoogleCal = (GoogleCal_Data_t){
+        "no_Refresh_Token_Saved_Yet"
+    };
+    
   mtb_Read_Nvs_Struct("googleCalData", &userGoogleCal, sizeof(GoogleCal_Data_t));
   event_Task_Name = new Mtb_FixedText_t(20, 12, Terminal6x8, BLACK, userGoogleCal.themeColor);  
   printPixAnimClkInterface();

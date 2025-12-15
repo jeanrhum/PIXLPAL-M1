@@ -26,7 +26,7 @@ EXT_RAM_BSS_ATTR Mtb_FixedText_t* otaUpdateTextBar = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t ota_Updating = NULL;
 EXT_RAM_BSS_ATTR Mtb_Applications_FullScreen *otaUpdateApplication_App = new Mtb_Applications_FullScreen(ota_Update_Task, &ota_Updating, "GHOTA Update");
 
-SemaphoreHandle_t ota_Update_Sem = NULL; 
+EXT_RAM_BSS_ATTR SemaphoreHandle_t ota_Update_Sem = NULL;
 
 String semver_t_ToString(const semver_t &version);
 

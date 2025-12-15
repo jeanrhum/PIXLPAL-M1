@@ -18,11 +18,11 @@
 static const char TAG[] = "LIVE_FOOTBALL";
 
 // Base URL for API endpoints
-const char* BASE_URL = "https://v3.football.api-sports.io";
+static const char* BASE_URL = "https://v3.football.api-sports.io";
 
 int16_t liveFootballDispChangeIntv = 0;  // This variable controls the time it takes for what is being displayed on-screen to change
 
-LiveFootball_Data_t liveFootballData;
+EXT_RAM_BSS_ATTR LiveFootball_Data_t liveFootballData;
 
 EXT_RAM_BSS_ATTR SemaphoreHandle_t changeDispMatch_Sem = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t liveFootball_Task_H = NULL;
@@ -132,13 +132,14 @@ void liveFootball_App_Task(void *dApplication){
     WiFiClientSecure client;
     const size_t CAPACITY = 150 * 1024; // ~150 KB, adjust to fit your JSON
     SpiRamJsonDocument doc(CAPACITY);
-        mtb_Read_Nvs_Struct("apiFutBall", &liveFootballData, sizeof(LiveFootball_Data_t));
-        liveFootballData.endpointType = LIVE_MATCHES_ENDPOINT;
-        liveFootballPtr = processLiveMatches;
-        liveFootballBackgroundPtr = drawLiveMatchesBackground;
+    liveFootballData = (LiveFootball_Data_t){0,39};
+    mtb_Read_Nvs_Struct("apiFutBall", &liveFootballData, sizeof(LiveFootball_Data_t));
+    liveFootballData.endpointType = LIVE_MATCHES_ENDPOINT;
+    liveFootballPtr = processLiveMatches;
+    liveFootballBackgroundPtr = drawLiveMatchesBackground;
 
-        // Set client to insecure for now (you can secure with fingerprint or CA cert)
-        client.setInsecure();
+    // Set client to insecure for now (you can secure with fingerprint or CA cert)
+    client.setInsecure();
 
     while (MTB_APP_IS_ACTIVE == pdTRUE){
 

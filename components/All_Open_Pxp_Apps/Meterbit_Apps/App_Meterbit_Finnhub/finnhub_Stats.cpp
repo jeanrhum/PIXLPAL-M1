@@ -14,21 +14,14 @@ static const char TAG[] = "FINNHUB_STATS";
 #define MAX_STOCKS 100
 
 // Default Stock
-Stocks_Stat_t currentStocks = {
-    "AAPL",
-    "USD",
-    "/stocks/stocksIcon_1.png",
-    "get free key @ finnhub.io/register",
-    1,
-    30
-};
+EXT_RAM_BSS_ATTR Stocks_Stat_t currentStocks;
 
 EXT_RAM_BSS_ATTR SemaphoreHandle_t changeDispStock_Sem = NULL;
 EXT_RAM_BSS_ATTR TimerHandle_t stockChangeTimer_H = NULL;
 EXT_RAM_BSS_ATTR TaskHandle_t finhubStats_Task_H = NULL;
 
 int8_t stockIterate = 0;
-String stockSymbols[MAX_STOCKS];
+EXT_RAM_BSS_ATTR String stockSymbols[MAX_STOCKS];
 int stockCount = 0;
 static const char stockSymbolsFilePath[] = "/stocks/dStocks.csv";
 
@@ -52,9 +45,17 @@ void finhubStats_App_Task(void* dApplication){
     mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(showParticularStock, add_RemoveStockSymbol, setStockChangeInterval, saveAPI_key);
     mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
     //************************************************************************************ */
-    ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 0.0\n");
+    //ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 0.0\n");
+    currentStocks = (Stocks_Stat_t){
+            "AAPL",
+            "USD",
+            "/stocks/stocksIcon_1.png",
+            "get free key @ finnhub.io/register",
+            1,
+            30
+        };
     mtb_Read_Nvs_Struct("stocksStat", &currentStocks, sizeof(Stocks_Stat_t));
-    ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 0.1\n");
+    //ESP_LOGW(TAG, "THE PROGRAM GOT TO THIS POINT 0.1\n");
     time_t present = 0;
     if(changeDispStock_Sem == NULL) changeDispStock_Sem = xSemaphoreCreateBinary();
     if(stockChangeTimer_H == NULL) stockChangeTimer_H = xTimerCreate("stockChange Timer", pdMS_TO_TICKS(currentStocks.stockChangeInterval > 0 ? (currentStocks.stockChangeInterval * 1000) : (30 * 1000)), true, NULL, stockChange_TimerCallback);
@@ -126,7 +127,7 @@ while (MTB_APP_IS_ACTIVE == pdTRUE){
         int httpCode = http.GET();
         if (httpCode > 0){
             String payload = http.getString();
-            ESP_LOGI(TAG, "\n\n Payload: %s \n\n", payload.c_str());
+            //ESP_LOGI(TAG, "\n\n Payload: %s \n\n", payload.c_str());
 
             DeserializationError error = deserializeJson(doc, payload);
             if (error) {

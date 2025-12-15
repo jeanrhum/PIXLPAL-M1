@@ -9,7 +9,7 @@
 #include "mtb_engine.h"
 #include "realStopwatch.h"
 
-RealStopWatch_Data_t frequentStopwatchTime{60};
+EXT_RAM_BSS_ATTR RealStopWatch_Data_t frequentStopwatchTime;
 
 EXT_RAM_BSS_ATTR TaskHandle_t realStopwatch_Task_H = NULL;
 void realStopwatch_App_Task(void *);
@@ -31,12 +31,12 @@ void realStopwatch_App_Task(void* dApplication){
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setWatchTime);
   mtb_App_Init(thisApp);
   //************************************************************************************ */
+  frequentStopwatchTime = (RealStopWatch_Data_t){60};
   mtb_Read_Nvs_Struct("realStopWatch", &frequentStopwatchTime, sizeof(RealStopWatch_Data_t));
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {
 
     while ((Mtb_Applications::internetConnectStatus != true) && (MTB_APP_IS_ACTIVE == pdTRUE)) delay(1000);
-
 
     while (MTB_APP_IS_ACTIVE == pdTRUE) {}
 

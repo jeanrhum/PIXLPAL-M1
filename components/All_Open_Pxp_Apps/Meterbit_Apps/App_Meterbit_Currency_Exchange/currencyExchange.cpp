@@ -13,15 +13,13 @@ static const char TAG[] = "CURRENCY_EXCHANGE";
 #define MAX_CurrencyS 100
 
 // Default Currency
-Currency_Stat_t currentCurrencies = {
-
-};
+EXT_RAM_BSS_ATTR Currency_Stat_t currentCurrencies;
 
 EXT_RAM_BSS_ATTR SemaphoreHandle_t changeDispCurrency_Sem = NULL;
 EXT_RAM_BSS_ATTR TimerHandle_t currencyChangeTimer_H = NULL;
 int8_t currencyIterate = 0;
 
-String currencySymbols[MAX_CurrencyS];
+EXT_RAM_BSS_ATTR String currencySymbols[MAX_CurrencyS];
 int currencyCount = 0;
 static const char currencySymbolsFilePath[] = "/currency/currency.csv";
 
@@ -46,6 +44,7 @@ void currencyExchange_App_Task(void* dApplication){
   mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(showParticularCurrencies, add_RemoveCurrencySymbol, setcurrencyChangeInterval, saveCurrencyAPI_key);
   mtb_App_Init(thisApp);
   //************************************************************************************ */
+  currentCurrencies = (Currency_Stat_t){};
   mtb_Read_Nvs_Struct("currencyStat", &currentCurrencies, sizeof(Currency_Stat_t));
   time_t present = 0;
   if(changeDispCurrency_Sem == NULL) changeDispCurrency_Sem = xSemaphoreCreateBinary();

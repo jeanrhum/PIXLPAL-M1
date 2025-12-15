@@ -6,11 +6,7 @@
 
 static const char TAG[] = "PXP_POLYGON_FX";
 
-PolygonFX_t polygonFX = {
-    "EUR/USD",
-    "5VCg1MsJak0eubOx6jJmJVnlmkacVCWj",
-    60
-};
+EXT_RAM_BSS_ATTR PolygonFX_t polygonFX;
 
 EXT_RAM_BSS_ATTR TaskHandle_t polygonFX_Task_H = NULL;
 void polygonFX_App_Task(void *);
@@ -28,6 +24,12 @@ void polygonFX_App_Task(void *dApplication){
     mtb_Ble_AppComm_Parser_Sv->mtb_Register_Ble_Comm_ServiceFns(setPolygonPair, setPolygonInterval, setPolygonAPIKey);
     mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
 
+      polygonFX = (PolygonFX_t){
+        "EUR/USD",
+        "5VCg1MsJak0eubOx6jJmJVnlmkacVCWj",
+        60
+    };
+    
     mtb_Read_Nvs_Struct("polygonFX", &polygonFX, sizeof(PolygonFX_t));
 
     JsonDocument doc;

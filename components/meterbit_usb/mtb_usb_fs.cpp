@@ -1,4 +1,4 @@
-#include "mtb_usb_msc.h"
+//#include "mtb_usb_msc.h"
 #include "mtb_usb_fs.h"
 #include <unistd.h>   // fileno, ftruncate, truncate
 #include <errno.h>

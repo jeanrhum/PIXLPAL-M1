@@ -95,4 +95,5 @@ void mtb_System_Init(void){
 	mtb_Read_Nvs_Struct("dev_Volume", &deviceVolume, sizeof(uint8_t));
     mtb_Text_Scrolls_Init();
     if(appLuncherQueue == NULL) appLuncherQueue = xQueueCreate(4, sizeof(Mtb_Applications*));
+    mtb_Start_This_Service(freeServAndAppPSRAM_Sv);
 }
