@@ -7,7 +7,7 @@
 #include "mtb_ble.h"
 #include "esp_heap_caps.h"
 
-using namespace std;
+//using namespace std;
 
 static const char TAG[] = "PXP-MAIN_PROG";
 

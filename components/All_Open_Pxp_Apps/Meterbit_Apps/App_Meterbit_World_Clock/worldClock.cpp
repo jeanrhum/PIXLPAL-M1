@@ -111,7 +111,7 @@ else drawWorldClockSingleCity();
 while (MTB_APP_IS_ACTIVE == pdTRUE) {
     thisApp->elementRefresh = false;
     if(worldClockCities.worldClockMode == FIVE_CLOCK_MODE){
-
+      // MEMORY LEAKING OBSERVED IN THIS LOOP - NEEDS FIXING LATER
       cityName0.mtb_Write_Colored_String(worldClockCities.worldCapitals[0], worldClockCities.worldColors[0]);
       cityName1.mtb_Write_Colored_String(worldClockCities.worldCapitals[1], worldClockCities.worldColors[1]);
       cityName2.mtb_Write_Colored_String(worldClockCities.worldCapitals[2], worldClockCities.worldColors[2]);
@@ -135,7 +135,8 @@ while (MTB_APP_IS_ACTIVE == pdTRUE) {
       while ((Mtb_Applications::internetConnectStatus != true) && (MTB_APP_IS_ACTIVE == pdTRUE)) delay(1000);
       
       strcpy(worldCountryFlag.imageLink, getFlag4x3ByCountry(worldClockCities.firstCountryName).c_str());
-      mtb_Draw_Online_Svg(&worldCountryFlag);
+
+      mtb_Draw_Online_Svg(&worldCountryFlag);             // IF FLAG IS NOT DRAWN, IT MEANS THE NAME OF THE COUNTRY WAS NOT FOUND AMONG THE COUNTRIES FLAG LISTS/JSON.
 
       while (MTB_APP_IS_ACTIVE == pdTRUE && thisApp->elementRefresh == false) {
         dispCityTime.mtb_Write_Colored_String(getCityLocalTime(worldClockCities.worldTimeZones[0], rtc_Hr_Min), worldClockCities.worldColors[0]);

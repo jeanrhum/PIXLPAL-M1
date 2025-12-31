@@ -83,7 +83,6 @@ void mtb_System_Init(void){
 
     if(nvsAccessQueue == NULL) nvsAccessQueue = xQueueCreateStatic(20, sizeof(NvsAccessParams_t), nvsAccessQueue_buffer, &xQueueStorage_NvsAccess);
     if(files2Download_Q == NULL) files2Download_Q = xQueueCreateStatic(20, sizeof(File2Download_t), files2Download_Q_buffer, &xQueueStorage_File2Download);
-    printf("The Size of File2Download_t is: %d \n", sizeof(File2Download_t));
     if(nvsAccessComplete_Sem == NULL) nvsAccessComplete_Sem = xSemaphoreCreateBinary();
     //if(bleRestoreTimer_H == NULL) bleRestoreTimer_H = xTimerCreate("bleRstoreTim", pdMS_TO_TICKS(1000), pdFALSE, NULL, bleRestoreTimerCallBkFn);
     if(Mtb_FixedText_t::scratchPad == nullptr){
