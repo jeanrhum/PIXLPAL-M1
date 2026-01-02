@@ -11,6 +11,7 @@
 #include "workerWorldFlagsFns.h"
 #include "worldClock.h"
 #include "mtb_buzzer.h"
+#include "mtb_PosixTZtoLocalTime.h"
 
 #define SINGLE_CLOCK_MODE   0
 #define FIVE_CLOCK_MODE     1
@@ -33,7 +34,7 @@ void requestWorldClkNTP_Time(JsonDocument&);
 // Helper Functions
 void drawWorldClock5CitiesBkgd(void);
 void drawWorldClockSingleCity(void);
-char* getCityLocalTime(char* cityTimeZone,  char* timeTextBuffer);
+//char* getCityLocalTime(const char* cityTimeZone,  char* timeTextBuffer);
 
 // EXT_RAM_BSS_ATTR Mtb_FixedText_t* cityName0;
 // EXT_RAM_BSS_ATTR Mtb_FixedText_t* cityTime0;
@@ -120,6 +121,13 @@ while (MTB_APP_IS_ACTIVE == pdTRUE) {
 
       while ((Mtb_Applications::internetConnectStatus != true) && (MTB_APP_IS_ACTIVE == pdTRUE)) delay(1000);
 
+    // Cache timezones at startup
+      cacheTimezone(worldClockCities.worldTimeZones[0]);
+      cacheTimezone(worldClockCities.worldTimeZones[1]);
+      cacheTimezone(worldClockCities.worldTimeZones[2]);
+      cacheTimezone(worldClockCities.worldTimeZones[3]);
+      cacheTimezone(worldClockCities.worldTimeZones[4]);
+
       while (MTB_APP_IS_ACTIVE == pdTRUE && thisApp->elementRefresh == false) {
         cityTime0.mtb_Write_Colored_String(getCityLocalTime(worldClockCities.worldTimeZones[0], rtc_Hr_Min), worldClockCities.worldColors[0]);
         cityTime1.mtb_Write_Colored_String(getCityLocalTime(worldClockCities.worldTimeZones[1], rtc_Hr_Min), worldClockCities.worldColors[1]);
@@ -164,49 +172,49 @@ void drawWorldClockSingleCity(void){
     mtb_Draw_Local_Png({"/batIcons/worldClk.png", 59, 14});
 }
 
-char* getCityLocalTime(char* cityTimeZone, char* timeTextBuffer){
-    setenv("TZ", cityTimeZone, 1);
-    tzset();
+// char* getCityLocalTime(const char* cityTimeZone, char* timeTextBuffer){
+//     setenv("TZ", cityTimeZone, 1);
+//     tzset();
 
-    time_t present = 0;
-    struct tm *now = nullptr;
-    //    char AM_or_PM;
-    static uint8_t pre_Hr = 111;
-    uint8_t pre_Min = 111;
+//     time_t present = 0;
+//     struct tm *now = nullptr;
+//     //    char AM_or_PM;
+//     static uint8_t pre_Hr = 111;
+//     uint8_t pre_Min = 111;
 
-    time(&present);
-    now = localtime(&present);
+//     time(&present);
+//     now = localtime(&present);
 
-  if (pre_Hr != now->tm_hour){
-	pre_Hr = now->tm_hour;
+//   if (pre_Hr != now->tm_hour){
+// 	pre_Hr = now->tm_hour;
 
-    if(pre_Hr == 0){
-    timeTextBuffer[0] = '0';
-    timeTextBuffer[1] = '0';
-    //sprintf(timeTextBuffer, "%d", pre_Hr );
-    } else if (pre_Hr < 10){
-    timeTextBuffer[0] = '0';
-    sprintf(&timeTextBuffer[1], "%d", pre_Hr);
-    } else {
-        sprintf(timeTextBuffer, "%d", pre_Hr );
-	}	
-    pre_Hr = now->tm_hour;        // Code is placed here because pre_Hr was changed.
-  }
+//     if(pre_Hr == 0){
+//     timeTextBuffer[0] = '0';
+//     timeTextBuffer[1] = '0';
+//     //sprintf(timeTextBuffer, "%d", pre_Hr );
+//     } else if (pre_Hr < 10){
+//     timeTextBuffer[0] = '0';
+//     sprintf(&timeTextBuffer[1], "%d", pre_Hr);
+//     } else {
+//         sprintf(timeTextBuffer, "%d", pre_Hr );
+// 	}	
+//     pre_Hr = now->tm_hour;        // Code is placed here because pre_Hr was changed.
+//   }
 
-  	if (pre_Min != now->tm_min){
-  pre_Min = now->tm_min;
+//   	if (pre_Min != now->tm_min){
+//   pre_Min = now->tm_min;
 
-  if (pre_Min < 10){
-		timeTextBuffer[3] = '0';
-    sprintf(&timeTextBuffer[4], "%d", pre_Min);
-		} else {
-    sprintf(&timeTextBuffer[3], "%d", pre_Min);
-	}
-  timeTextBuffer[2] = ':';
-  timeTextBuffer[5] = 0;
-}
-return timeTextBuffer;
-}
+//   if (pre_Min < 10){
+// 		timeTextBuffer[3] = '0';
+//     sprintf(&timeTextBuffer[4], "%d", pre_Min);
+// 		} else {
+//     sprintf(&timeTextBuffer[3], "%d", pre_Min);
+// 	}
+//   timeTextBuffer[2] = ':';
+//   timeTextBuffer[5] = 0;
+// }
+// return timeTextBuffer;
+// }
 
 void setWorldClockCities(JsonDocument& dCommand){
   uint8_t cmdNumber = dCommand["app_command"];
@@ -238,6 +246,8 @@ void setWorldClockCities(JsonDocument& dCommand){
 
   mtb_Write_Nvs_Struct("worldClockNv", &worldClockCities, sizeof(WorldClock_Data_t));
   strcpy(ntp_TimeZone, worldClockCities.worldTimeZones[0]);
+
+  clearTimezoneCache();
 
   Mtb_Applications::currentRunningApp->elementRefresh = true;
   mtb_Ble_App_Cmd_Respond_Success(worldClockAppRoute, cmdNumber, pdPASS);
