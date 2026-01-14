@@ -16,7 +16,7 @@
 #include "mtb_fonts.h"
 #include "mtb_colors.h"
 #include "Arduino.h"
-#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
+#include "hub75.h"
 #include "mtb_nvs.h"
 
 #define FIXED_TEXT_STYLE    1
@@ -65,10 +65,10 @@
         int32_t loopCount = 1;
     };
 
-typedef struct{
-	uint16_t color;		// 16-bit 565 color
-	uint8_t brightness; // 0-255
-} rgb_led_message_t;
+    typedef struct{
+        uint16_t color;		// 16-bit 565 color
+        uint8_t brightness; // 0-255
+    } rgb_led_message_t;
 
     extern void mtb_Do_Nothing_Void_Fn(void);
     typedef void (*ImgWipeFn_ptr)(void);
@@ -77,22 +77,18 @@ typedef struct{
     extern uint16_t panelBrightness;
     extern uint16_t currentStatusLEDcolor;
 
-//    extern void mtb_Time_Setup_Init(void);
-
-
     // USER IMAGE DRAW FUNCTIONS
     extern BaseType_t mtb_Draw_Local_Png(const Mtb_LocalImage_t&);                                                                                          // Draw a local PNG image from SPIFFS
     extern bool mtb_Draw_Online_Png(const Mtb_OnlineImage_t* images, size_t drawPNGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);    // Draw an online PNG image from URL
     extern void mtb_Download_Multi_Png(const Mtb_OnlineImage_t* images, size_t drawPNGsCount);                                                              // Download multiple PNG images from URLs
     extern bool mtb_Draw_Multi_Png(size_t drawPNGsCount, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);                                          // Draw multiple pre-downloaded PNG images
 
-
     extern BaseType_t mtb_Draw_Local_Svg(const Mtb_LocalImage_t&);                                                                                          // Draw a local SVG image from SPIFFS
     extern bool mtb_Draw_Online_Svg(const Mtb_OnlineImage_t* images, size_t drawSVGsCount = 1, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);    // Draw an online SVG image from URL
     extern void mtb_Download_Multi_Svg(const Mtb_OnlineImage_t* images, size_t drawSVGsCount);                                                              // Download multiple SVG images from URLs
     extern bool mtb_Draw_Multi_Svg(size_t drawSVGsCount, ImgWipeFn_ptr wipePreviousImgs = mtb_Do_Nothing_Void_Fn);                                          // Draw multiple pre-downloaded SVG images
 
-    extern uint8_t mtb_Draw_Local_Gif(const Mtb_LocalAnim_t &dAnim);
+    extern uint8_t mtb_Draw_Local_Gif(const Mtb_LocalAnim_t &dAnim);                                                                                        // Draw a local GIF animation from SPIFFS     
     extern void mtb_Set_Status_RGB_LED(uint16_t color, uint8_t brightness = (uint8_t) panelBrightness/2);                                                   // Set the RGB LED color and brightness
     //************************************************************************************************************************************************* */
 
@@ -109,6 +105,27 @@ typedef struct{
     extern QueueHandle_t nvsAccessQueue;
     extern QueueHandle_t rgb_led_queue;
 
+    // GRAPHICS PROCESSING FUNCTIONS
+    extern uint16_t mtb_Panel_Color565(uint8_t r, uint8_t g, uint8_t b, uint16_t *color = nullptr);
+    extern void mtb_Panel_Draw_PixelRGB(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
+    extern void mtb_Panel_Draw_Pixel565(uint16_t x, uint16_t y, uint16_t color);
+    extern void mtb_Panel_Draw_Frame(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t *data);
+    extern void mtb_Panel_Set_Brightness(uint8_t brightness);
+    extern void mtb_Panel_Fill_Screen(uint16_t color);
+    extern void mtb_Panel_Clear_Screen(void);
+    extern void mtb_Panel_Draw_HLine(uint16_t y, uint16_t x1, uint16_t x2, uint16_t color);
+    extern void mtb_Panel_Draw_VLine(uint16_t x, uint16_t y1, uint16_t y2, uint16_t color);
+    
+    extern void mtb_Panel_Draw_Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,  uint16_t color);
+    extern void mtb_Panel_Fill_Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,  uint16_t color);
+    extern void mtb_Panel_Draw_Line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
+    extern void mtb_Panel_Draw_Circle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
+    extern void mtb_Panel_Fill_Circle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
+    extern void mtb_Panel_Draw_Triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
+    extern void mtb_Panel_Fill_Triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
+    extern void mtb_Panel_Draw_Round_Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t radius, uint16_t color);
+    extern void mtb_Panel_Fill_Round_Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t radius, uint16_t color);
+    // END OF SUPPORT FUNCTIONS *******************************************************************************************************
 
 
     // TEXT PROCESSING CLASSES
@@ -214,5 +231,5 @@ class ScrollTextHelper_t : public Mtb_Static_Text_t {
     ScrollTextHelper_t(uint16_t x1, uint16_t y1, const uint8_t *font = Terminal6x8) : Mtb_Static_Text_t(x1, y1, font) { textStyle = SCROLL_TEXT_STYLE;}
 };
 
-    extern MatrixPanel_I2S_DMA *dma_display;
+    extern Hub75Driver* mtb_Display_Driver;
 #endif

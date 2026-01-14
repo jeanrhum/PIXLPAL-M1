@@ -68,7 +68,7 @@ void  internetRadio_App_Task(void* dApplication){
     mtb_Draw_Local_Png({"/batIcons/fmRadio.png", 68, 10});
     mtb_Draw_Local_Png({"/batIcons/radStation.png", 2, 46});
     mtb_Draw_Local_Png({"/batIcons/radStrmTitle.png", 2, 55});
-    dma_display->drawRect(0, 44, 128, 20, PURPLE_NAVY);
+    mtb_Panel_Draw_Rect(0, 44, 127, 63, PURPLE_NAVY);
 //******************************************************************************************************************************** */
     currentRadioStation = (RadioStation_t){
       "Naija Hits FM",

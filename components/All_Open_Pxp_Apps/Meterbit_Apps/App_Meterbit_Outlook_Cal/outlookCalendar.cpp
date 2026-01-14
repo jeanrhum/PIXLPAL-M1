@@ -211,9 +211,9 @@ void fetchEventsForOutlookCalendar(const String& accessToken, const char* calend
 
     if (showOutlookEventAttendees && event.containsKey("attendees")) {
       ESP_LOGI(TAG, "👥 Attendees:\n");
-      for (JsonObject att : event["attendees"].as<JsonArray>()) {
-        ESP_LOGI(TAG, " - %s\n", att["email"].as<const char*>());
-      }
+      // for (JsonObject att : event["attendees"].as<JsonArray>()) {
+      //   ESP_LOGI(TAG, " - %s\n", att["email"].as<const char*>());
+      // }
     }
 
     if (showOutlookEventDescription) {
@@ -325,9 +325,10 @@ void fetchOutlookTasks(const String& accessToken) {
 }
 
   void printOutlookCalThm(void){
-    dma_display->fillRect(0, 10, 128, 63, OUTER_SPACE);   // Fill background color2
-    dma_display->fillRect(2, 23, 124, 39, BLACK);           // Fill clock area color.
-    dma_display->drawLine(2, 42, 125, 42, OUTER_SPACE);   // Draw inner borders1
+    mtb_Panel_Fill_Rect(0, 10, 128, 63, OUTER_SPACE);   // Fill background color2
+    mtb_Panel_Fill_Rect(2, 23, 125, 61, BLACK);           // Fill clock area color.
+    mtb_Panel_Draw_Line(2, 42, 126, 42, OUTER_SPACE);   // Draw inner borders1
+
   }
 
   //***************************************************************************************************

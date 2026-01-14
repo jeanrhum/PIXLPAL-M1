@@ -121,7 +121,7 @@ String fetchNewsHeadlines() {
 // Each headline is shown on its own line (y = line * 8) with a unique color.
 void displayNewsHeadlines(String headlines) {
     // Clear the display before updating
-    //dma_display->fillScreen(BLACK);
+    mtb_Panel_Fill_Screen(BLACK);
     
     int headlineIndex = 0;
     int start = 0;

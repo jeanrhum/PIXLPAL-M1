@@ -53,14 +53,14 @@ void studioLight_App_Task(void* dApplication){
     while (MTB_APP_IS_ACTIVE == pdTRUE){
         if(xSemaphoreTake(studioLightMode_Sem_H, pdMS_TO_TICKS(100)) == pdTRUE || studioLightsInfo.studioLightColorMode == CYCLE_MODE){
             if(studioLightsInfo.studioLightColorMode == FULLSCREEN_MODE){
-                dma_display->fillScreen(studioLightsInfo.studioLightColor[0]);
+                mtb_Panel_Fill_Screen(studioLightsInfo.studioLightColor[0]);
             }else if (studioLightsInfo.studioLightColorMode == HALFSCREEN_MODE){
-                dma_display->fillRect(0, 0, MATRIX_WIDTH/2, MATRIX_HEIGHT, studioLightsInfo.studioLightColor[0]);
-                dma_display->fillRect(MATRIX_WIDTH/2, 0, MATRIX_WIDTH/2, MATRIX_HEIGHT, studioLightsInfo.studioLightColor[1]);
+                mtb_Panel_Fill_Rect(0, 0, 63, 63, studioLightsInfo.studioLightColor[0]);
+                mtb_Panel_Fill_Rect(63, 0, 127, 63, studioLightsInfo.studioLightColor[1]);
             }else if (studioLightsInfo.studioLightColorMode == CYCLE_MODE){
                 cycleClockPeriodCounter = studioLightsInfo.studioLightDuration;
                 static uint8_t colorIndex = 0;
-                dma_display->fillScreen(studioLightsInfo.studioLightColor[colorIndex]);
+                mtb_Panel_Fill_Screen(studioLightsInfo.studioLightColor[colorIndex]);
                 colorIndex++;
                 if(colorIndex >= 5) colorIndex = 0;
                 while (cycleClockPeriodCounter-->0 && MTB_APP_IS_ACTIVE == pdTRUE && uxSemaphoreGetCount(studioLightMode_Sem_H) < 1) delay(100);
@@ -108,7 +108,7 @@ void setStudioLightColors(JsonDocument& dCommand){
     uint8_t colorIndex = dCommand["colorIndex"];
     const char* selectColor = dCommand["colorVal"];
     selectColor += 4;
-    studioLightsInfo.studioLightColor[colorIndex] = dma_display->color565(((uint8_t)((strtol(selectColor,NULL,16) >> 16))), ((uint8_t)((strtol(selectColor,NULL,16) >> 8))),((uint8_t)((strtol(selectColor,NULL,16) >> 0))));
+    studioLightsInfo.studioLightColor[colorIndex] = mtb_Panel_Color565(((uint8_t)((strtol(selectColor,NULL,16) >> 16))), ((uint8_t)((strtol(selectColor,NULL,16) >> 8))),((uint8_t)((strtol(selectColor,NULL,16) >> 0))));
     xSemaphoreGive(studioLightMode_Sem_H);
     //printf("Instruction 0 has been received.\n");
     mtb_Write_Nvs_Struct("studioLight", &studioLightsInfo, sizeof(StudioLight_Data_t));
@@ -119,7 +119,7 @@ void setScreenBrightness(JsonDocument& dCommand){
     uint8_t cmdNumber = dCommand["app_command"];
     uint16_t tempBrightness = dCommand["value"];
     panelBrightness = (tempBrightness * 2.55) + 1; // One (1) is added to make the 100% correspond to 255
-    dma_display->setBrightness(panelBrightness); // 0-255
+    mtb_Panel_Set_Brightness(panelBrightness); // 0-255
     mtb_Set_Status_RGB_LED(currentStatusLEDcolor);
     //printf("Instruction 1 has been received.\n");
     mtb_Write_Nvs_Struct("pan_brghnss", &panelBrightness, sizeof(uint8_t));

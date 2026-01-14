@@ -19,7 +19,7 @@
 #include "mtb_nvs.h"
 #include "mtb_system.h"
 #include "mtb_ble.h"
-#include "ESP32-HUB75-MatrixPanel-I2S-DMA.h"
+//#include "ESP32-HUB75-MatrixPanel-I2S-DMA.h"
 #include "mtb_graphics.h"
 
 static const char TAG[] = "BLE_SYSTEM_SETTINGS";
@@ -80,7 +80,7 @@ tempBrightness = dCommand["value"];
 panelBrightness = (tempBrightness * 2.55) + 1; // One (1) is added to make the 100% correspond to 255
 if (panelBrightness == 0)panelBrightness = 5;
 mtb_Write_Nvs_Struct("pan_brghnss", &panelBrightness, sizeof(uint8_t));
-dma_display->setBrightness(panelBrightness); // 0-255
+mtb_Panel_Set_Brightness(panelBrightness); // 0-255
 mtb_Set_Status_RGB_LED(currentStatusLEDcolor);
 sprintf(brightnsValue, "%d", (uint8_t)(panelBrightness / 2.55));
 strcat(setPanBrightness, brightnsValue);

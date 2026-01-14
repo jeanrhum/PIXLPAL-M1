@@ -158,7 +158,7 @@ bool Mtb_Applications::appRunner(){
 
 void Mtb_Applications::appResume(Mtb_Applications* dApp){
     appDestroy(currentRunningApp);
-    dma_display->clearScreen();
+    mtb_Panel_Clear_Screen();
     previousRunningApp = currentRunningApp;
 
     if(dApp->fullScreen == false) mtb_Draw_Status_Bar();
@@ -242,7 +242,7 @@ void mtb_Brightness_Control(rotary_encoder_rotation_t direction){
     if (direction == ROT_CLOCKWISE){
         if(panelBrightness <= 250){ 
         panelBrightness += 5;
-        dma_display->setBrightness(panelBrightness); // 0-255
+        mtb_Panel_Set_Brightness(panelBrightness); // 0-255
         mtb_Set_Status_RGB_LED(currentStatusLEDcolor);
         mtb_Write_Nvs_Struct("pan_brghnss", &panelBrightness, sizeof(uint8_t));
         }
@@ -250,7 +250,7 @@ void mtb_Brightness_Control(rotary_encoder_rotation_t direction){
     } else if(direction == ROT_COUNTERCLOCKWISE){
         if(panelBrightness >= 7){
         panelBrightness -= 5;
-        dma_display->setBrightness(panelBrightness); //0-255
+        mtb_Panel_Set_Brightness(panelBrightness); //0-255
         mtb_Set_Status_RGB_LED(currentStatusLEDcolor);
         mtb_Write_Nvs_Struct("pan_brghnss", &panelBrightness, sizeof(uint8_t));
         }
@@ -328,7 +328,7 @@ void mtb_App_Init(Mtb_Applications *thisApp, Mtb_Services* pointer_0, Mtb_Servic
     thisApp->appServices[9] = pointer_9;
 
     delay(250);
-    dma_display->clearScreen();
+    mtb_Panel_Clear_Screen();
     for (Mtb_Services *element : thisApp->appServices) if (element != nullptr) mtb_Launch_This_Service(element);
     if(thisApp->mtb_App_ButtonFn_ptr != buttonDoNothing) mtb_Launch_This_Service(mtb_Button_Task_Sv);
     if(thisApp->mtb_App_EncoderFn_ptr != encoderDoNothing) mtb_Launch_This_Service(mtb_Encoder_Task_Sv);

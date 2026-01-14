@@ -146,6 +146,8 @@ while (MTB_APP_IS_ACTIVE == pdTRUE) {
 
       mtb_Draw_Online_Svg(&worldCountryFlag);             // IF FLAG IS NOT DRAWN, IT MEANS THE NAME OF THE COUNTRY WAS NOT FOUND AMONG THE COUNTRIES FLAG LISTS/JSON.
 
+      cacheTimezone(worldClockCities.worldTimeZones[0]);
+
       while (MTB_APP_IS_ACTIVE == pdTRUE && thisApp->elementRefresh == false) {
         dispCityTime.mtb_Write_Colored_String(getCityLocalTime(worldClockCities.worldTimeZones[0], rtc_Hr_Min), worldClockCities.worldColors[0]);
         delay(1000);
@@ -158,17 +160,16 @@ while (MTB_APP_IS_ACTIVE == pdTRUE) {
 
 
 void drawWorldClock5CitiesBkgd(void){
-    dma_display->fillRect(0, 10, 128, 54, BLACK);   
-    //dma_display->fillRect(0, 10, 128, 10, TURTLE_GREEN);
-    uint16_t clockDividerColor = dma_display->color565(35, 35, 35);
-    dma_display->drawFastHLine(0, 20, 128, clockDividerColor);
-    dma_display->drawFastHLine(0, 31, 128, clockDividerColor);
-    dma_display->drawFastHLine(0, 42, 128, clockDividerColor);
-    dma_display->drawFastHLine(0, 53, 128, clockDividerColor);
+    mtb_Panel_Fill_Rect(0, 10, 127, 63, BLACK);   
+    uint16_t clockDividerColor = mtb_Panel_Color565(35, 35, 35);
+    mtb_Panel_Draw_HLine(20, 0, 128, clockDividerColor);
+    mtb_Panel_Draw_HLine(31, 0, 128, clockDividerColor);
+    mtb_Panel_Draw_HLine(42, 0, 128, clockDividerColor);
+    mtb_Panel_Draw_HLine(53, 0, 128, clockDividerColor);
 }
 
 void drawWorldClockSingleCity(void){
-    dma_display->fillRect(0, 10, 128, 54, BLACK);
+    mtb_Panel_Fill_Rect(0, 10, 127, 63, BLACK);
     mtb_Draw_Local_Png({"/batIcons/worldClk.png", 59, 14});
 }
 
@@ -261,7 +262,7 @@ void setWorldClockColors(JsonDocument& dCommand){
     color = dCommand["value"];
     color += 4;
 
-    worldClockCities.worldColors[dCityIndex] = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    worldClockCities.worldColors[dCityIndex] = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     
     mtb_Write_Nvs_Struct("worldClockNv", &worldClockCities, sizeof(WorldClock_Data_t));
     Mtb_Applications::currentRunningApp->elementRefresh = true;

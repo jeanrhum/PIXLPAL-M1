@@ -59,7 +59,7 @@ bool showTaskNotes      = true;
   void fetchAllCalendarEvents(const String& accessToken);
   void fetchTasks(const String& accessToken);
   String mtb_Get_Current_Time_RFC3339();
-  void printPixAnimClkInterface(void);
+  void google_Cal_Theme(void);
   String mtb_Url_Encode(const char* str);
 
 void googleCalButtonControl(button_event_t){}
@@ -111,7 +111,7 @@ void  googleCal_App_Task(void* dApplication){
     
   mtb_Read_Nvs_Struct("googleCalData", &userGoogleCal, sizeof(GoogleCal_Data_t));
   event_Task_Name = new Mtb_FixedText_t(20, 12, Terminal6x8, BLACK, userGoogleCal.themeColor);  
-  printPixAnimClkInterface();
+  google_Cal_Theme();
 
   //mtb_Draw_Local_Png({"/batIcons/googleEvent.png", 3, 11});
 //######################################################################################### */
@@ -201,9 +201,9 @@ void fetchEventsForCalendar(const String& accessToken, const char* calendarId) {
 
     if (showEventAttendees && event.containsKey("attendees")) {
       ESP_LOGI(TAG, "👥 Attendees:\n");
-      for (JsonObject att : event["attendees"].as<JsonArray>()) {
-        ESP_LOGI(TAG, " - %s\n", att["email"].as<const char*>());
-      }
+      // for (JsonObject att : event["attendees"].as<JsonArray>()) {
+      //   ESP_LOGI(TAG, " - %s\n", att["email"].as<const char*>());
+      // }
     }
 
     if (showEventDescription) {
@@ -314,10 +314,10 @@ void fetchTasks(const String& accessToken) {
   http.end();
 }
 
-  void printPixAnimClkInterface(void){
-    dma_display->fillRect(0, 10, 128, 63, userGoogleCal.themeColor);   // Fill background color2
-    dma_display->fillRect(2, 23, 124, 39, BLACK);           // Fill clock area color.
-    dma_display->drawLine(2, 42, 125, 42, userGoogleCal.themeColor);   // Draw inner borders1
+  void google_Cal_Theme(void){
+    mtb_Panel_Fill_Rect(0, 10, 127, 63, userGoogleCal.themeColor);   // Fill background color2
+    mtb_Panel_Fill_Rect(2, 23, 125, 61, BLACK);           // Fill clock area color.
+    mtb_Panel_Draw_Line(2, 42, 126, 42, userGoogleCal.themeColor);   // Draw inner borders1
 
     //mtb_Draw_Local_Png({"/batIcons/googleEvent.png", 3, 11});
     mtb_Draw_Local_Png({"/batIcons/aiResp.png", 3, 24});
@@ -373,8 +373,8 @@ void fetchTasks(const String& accessToken) {
     uint8_t cmdNumber = dCommand["app_command"];
     const char *color = dCommand["themeColor"];
     color += 4;
-    userGoogleCal.themeColor = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
-    printPixAnimClkInterface();
+    userGoogleCal.themeColor = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    google_Cal_Theme();
     event_Task_Name->backgroundColor = userGoogleCal.themeColor;
 
     mtb_Write_Nvs_Struct("googleCalData", &userGoogleCal, sizeof(GoogleCal_Data_t));

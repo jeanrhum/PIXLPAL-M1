@@ -618,29 +618,29 @@ void changeFootballTeams(button_event_t button_Data){
 
 
 void wipePrevFixturesLogos(void){
-  dma_display->fillRect(16, 22, 21, 30, BLACK); // Fill background color2
-  dma_display->fillRect(67, 22, 21, 30, BLACK); // Fill background color2
-  dma_display->fillRect(36, 22, 6, 11, BLACK);   // Fill background color2
-  dma_display->fillRect(36, 41, 6, 11, BLACK);   // Fill background color2
+  mtb_Panel_Fill_Rect(16, 22, 36, 51, BLACK);   // Fill background color2
+  mtb_Panel_Fill_Rect(67, 22, 87, 51, BLACK);   // Fill background color2
+  mtb_Panel_Fill_Rect(36, 22, 41, 32, BLACK);   // Fill background color2
+  mtb_Panel_Fill_Rect(36, 41, 41, 51, BLACK);   // Fill background color2
 }
 
 void drawLiveMatchesBackground(void){
-    dma_display->fillRect(0, 10, 128, 54, BLACK);
+    mtb_Panel_Fill_Rect(0, 10, 128, 63, BLACK);
 }
 
 void drawMatchFixturesBackground(void){
-    dma_display->fillRect(0, 10, 128, 54, BLACK);
-    dma_display->fillRect(0, 10, 128, 10, TEAL);   // Fill background color2
-    dma_display->drawFastVLine(88, 22, 32, dma_display->color565(35, 35, 35));
+    mtb_Panel_Fill_Rect(0, 10, 127, 63, BLACK);
+    mtb_Panel_Fill_Rect(0, 10, 127, 20, TEAL);   // Fill background color2
+    mtb_Panel_Draw_VLine(88, 22, 54, mtb_Panel_Color565(35, 35, 35)); // Draw vertical divider line
 }
 
 void drawStandingsBackground(void){
-    dma_display->fillRect(0, 10, 128, 54, BLACK);   
-    dma_display->fillRect(0, 10, 128, 10, TURTLE_GREEN);
-    uint16_t teamDividerColor = dma_display->color565(35, 35, 35);
-    dma_display->drawFastHLine(0, 31, 128, teamDividerColor);
-    dma_display->drawFastHLine(0, 42, 128, teamDividerColor);
-    dma_display->drawFastHLine(0, 53, 128, teamDividerColor);
+    mtb_Panel_Fill_Rect(0, 10, 127, 63, BLACK);
+    mtb_Panel_Fill_Rect(0, 10, 127, 20, TURTLE_GREEN);
+    uint16_t teamDividerColor = mtb_Panel_Color565(35, 35, 35);
+    mtb_Panel_Draw_HLine(31, 0, 128, teamDividerColor);
+    mtb_Panel_Draw_HLine(42, 0, 128, teamDividerColor);
+    mtb_Panel_Draw_HLine(53, 0, 128, teamDividerColor);
 }
 
 

@@ -7,7 +7,7 @@
 #include "mtb_ble.h"
 #include "esp_heap_caps.h"
 
-//using namespace std;
+using namespace std;
 
 static const char TAG[] = "PXP-MAIN_PROG";
 
@@ -40,7 +40,7 @@ extern "C" void app_main(){
         
     // Get the total free size of internal SRAM
     free_sram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-
+    
     // Print the free SRAM size
     printf("############ Free Internal SRAM: %zu bytes\n", free_sram);
 

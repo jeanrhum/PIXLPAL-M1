@@ -1,8 +1,69 @@
 # Change log for esp-sr
 
-## Known issues: 
-- Available storage is less than the remaining flash space on IDF v5.0.   
-If you can not map model partition successfully, please check the left free storage by `spi_flash_mmap_get_free_pages(ESP_PARTITION_MMAP_DATA)` or update IDF to v5.1 or later.
+# 2.3.0
+- Upgrade esp-dsp to v1.7.0
+- Fix mn5q8 crash
+- Support add more wakenet model in AFE
+
+# 2.2.2
+- Add more wakenet9 models
+
+# 2.2.1
+- Fix AFE error log
+- Add new wakenet9 models
+
+# 2.2.0
+- Support WakeNet9l models
+- Update TTS pipeline v3.0 
+
+## 2.1.5
+- Fix ringbuf bug
+- Add more wakenet9 models
+
+## 2.1.4
+- Fix the bug of multinet duration overflow
+- Fix the memory leak bug in multinet7 and multinet6
+
+## 2.1.3
+- Replace kissfft with dl_fft for wakenet9s
+- Replace esp-dsp fft with dl_fft for wakenet9
+- Add more wakenet9 model
+
+## 2.1.2
+- Add debug mode
+- Update wakenet trigget to v4
+
+## 2.1.1
+- Add 8KHz AEC for VoIP
+- Add more wakenet9 models
+
+## 2.1.0
+- esp32c3 support wakenet9s and aec
+- esp32c5 support wakenet9s and aec
+- esp32c6 support wakenet9s and aec
+- esp32s2 support wakenet9s and aec
+- Add four wakenet9s model: hilexin,hiesp,nihaoxiaozhi,hijason
+
+## 2.0.5
+- Fix fftr bug
+
+## 2.0.4
+- Add DOA(Direction of Arrival) algorithm
+
+## 2.0.3
+- Add wakenet9 support for ESP32
+
+## 2.0.2
+- Accelerate the AEC of ESP32C5, reducing the CPU loading from 39% to 30%.
+
+## 2.0.1
+- Add `afe_aec_create`, `afe_aec_destroy`, `afe_aec_process` interface
+
+## 2.0.0
+- Add vadnet1_medium model
+- Refactor AFE interface. Note AFE v2.0 is not compatible with previous versions
+- Add esp32c5 AEC support
+- Add some new wake words
 
 ## 1.9.5
 - Add Hi,Jason; 小鸭小鸭; 璃奈板 wake word models
@@ -99,7 +160,7 @@ If you can not map model partition successfully, please check the left free stor
 
 ## 1.3.0 
 - Update the partition APIs to keep compatible with both IDF v4.4 and IDF v5.0
-- Add a new Chinese MultiNet6 mdoel for air conditioner controller 
+- Add a new Chinese MultiNet6 model for air conditioner controller 
 
 ## 1.2.1
 - Fix bugs in model loader

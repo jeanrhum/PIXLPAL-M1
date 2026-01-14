@@ -1,5 +1,6 @@
 #pragma once
 #include "stdint.h"
+#include "dl_lib_convq_queue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,7 @@ typedef enum {
     DET_MODE_2CH_95 = 3,
     DET_MODE_3CH_90 = 4,
     DET_MODE_3CH_95 = 5,
+	DET_MODE_90_COPY_PARAMS = 6,       // Aggressive
 } det_mode_t;
 
 typedef struct {
@@ -36,7 +38,7 @@ typedef struct {
 } wake_word_info_t;
 
 /**
- * @brief Easy function type to initialze a model instance with a detection mode and specified wake word coefficient
+ * @brief Easy function type to initialize a model instance with a detection mode and specified wake word coefficient
  *
  * @param model_name  The specified wake word model coefficient
  * @param det_mode    The wake words detection mode to trigger wake words, DET_MODE_90 or DET_MODE_95
@@ -109,11 +111,20 @@ typedef char* (*esp_wn_iface_op_get_word_name_t)(model_iface_data_t *model, int 
  * @brief Set the detection threshold to manually abjust the probability 
  *
  * @param model The model object to query
- * @param det_treshold The threshold to trigger wake words, the range of det_threshold is 0.5~0.9999
+ * @param det_treshold The threshold to trigger wake words, the range of det_threshold is 0.4~0.9999
  * @param word_index The index of wake word
  * @return 0: setting failed, 1: setting success
  */
 typedef int (*esp_wn_iface_op_set_det_threshold_t)(model_iface_data_t *model, float det_threshold, int word_index);
+
+/**
+ * @brief Reset the threshold to its initial state  
+ *
+ * @param model The model object to query
+ * @return 0: setting failed, 1: setting success
+ */
+typedef int (*esp_wn_iface_op_reset_det_threshold_t)(model_iface_data_t *model);
+
 
 /**
  * @brief Get the wake word detection threshold of different modes
@@ -167,6 +178,25 @@ typedef void (*esp_wn_iface_op_clean_t)(model_iface_data_t *model);
  */
 typedef void (*esp_wn_iface_op_destroy_t)(model_iface_data_t *model);
 
+/**
+ * @brief Feed MFCC of an audio stream to the vad model and detect whether is
+ * voice.
+ *
+ * @param model The model object to query
+ * @param cq An array of 16-bit MFCC.
+ * @return The index of wake words, return 0 if no wake word is detected, else
+ * the index of the wake words.
+ */
+typedef wakenet_state_t (*esp_wn_iface_op_detect_mfcc_t)(model_iface_data_t *model, int16_t *samples, dl_convq_queue_t *cq);
+
+/**
+ * @brief Get MFCC of an audio stream
+ *
+ * @param model The model object to query
+ * @return MFCC data
+ */
+typedef dl_convq_queue_t* (*esp_wn_iface_op_get_mfcc_data_t)(model_iface_data_t *model);
+
 
 /**
  * This structure contains the functions used to do operations on a wake word detection model.
@@ -180,10 +210,13 @@ typedef struct {
     esp_wn_iface_op_get_word_num_t get_word_num;
     esp_wn_iface_op_get_word_name_t get_word_name;
     esp_wn_iface_op_set_det_threshold_t set_det_threshold;
+    esp_wn_iface_op_reset_det_threshold_t reset_det_threshold;
     esp_wn_iface_op_get_det_threshold_t get_det_threshold;
     esp_wn_iface_op_get_triggered_channel_t  get_triggered_channel;
     esp_wn_iface_op_get_vol_gain_t get_vol_gain;
     esp_wn_iface_op_detect_t detect;
+    esp_wn_iface_op_detect_mfcc_t detect_mfcc;
+    esp_wn_iface_op_get_mfcc_data_t get_mfcc_data;
     esp_wn_iface_op_clean_t clean;
     esp_wn_iface_op_destroy_t destroy;
 } esp_wn_iface_t;

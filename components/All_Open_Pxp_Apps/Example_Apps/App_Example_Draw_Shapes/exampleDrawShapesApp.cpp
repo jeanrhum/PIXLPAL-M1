@@ -14,23 +14,23 @@ void exampleDrawShapeApp_Task(void* dApplication){
   mtb_App_Init(thisApp, mtb_Status_Bar_Clock_Sv);
 // End of App parameter initialization
 
-dma_display->clearScreen();
+mtb_Panel_Clear_Screen();
 
-dma_display->drawPixel(21, 36, WHITE); // Draw a single pixel
+mtb_Panel_Draw_Pixel565(21, 36, WHITE); // Draw a single pixel
 // Draw some shapes
-// dma_display->drawLine(10, 10, 50, 10, WHITE);
-dma_display->drawCircle(21, 36, 19, GREEN_PANTONE);
-// // // Draw a filled triangle
-dma_display->fillTriangle(64, 16, 34, 56, 94, 56, CYAN_PROCESS);
+// mtb_Panel_Draw_Rect(10, 10, 50, 10, WHITE);
+mtb_Panel_Draw_Circle(21, 36, 19, GREEN_PANTONE);
+// Draw a filled triangle
+mtb_Panel_Fill_Triangle(64, 16, 34, 56, 94, 56, CYAN_PROCESS);
 
-// dma_display->drawFastVLine(120, 10, 50, WHITE); // Draw a vertical line
-// dma_display->drawFastHLine(10, 120, 50, WHITE); // Draw a horizontal line
+// mtb_Panel_Draw_VLine(120, 10, 60, WHITE); // Draw a vertical line
+// mtb_Panel_Draw_HLine(10, 120, 50, WHITE); // Draw a horizontal line
 // // // Draw a rounded rectangle
-dma_display->drawRoundRect(94, 16, 30, 40, 5, PINK);
+mtb_Panel_Draw_Round_Rect(94, 16, 30, 40, 5, PINK);
 // // // Draw a filled rounded rectangle
-dma_display->fillRoundRect(97, 19, 24, 34, 5, ORANGE_PANTONE);
-// // // Draw a triangle with a different color
-// dma_display->fillScreen(GREEN_LIZARD); // Clear the screen before drawing
+// mtb_Panel_Fill_Round_Rect(97, 19, 24, 34, 5, ORANGE_PANTONE);
+// Fill the screen with a fixed color color
+// mtb_Panel_Fill_Screen(GREEN_LIZARD); 
 
 
 while (MTB_APP_IS_ACTIVE == pdTRUE) {

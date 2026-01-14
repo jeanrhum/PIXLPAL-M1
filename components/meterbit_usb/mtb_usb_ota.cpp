@@ -48,12 +48,12 @@ void  firmwareUpdateTask(void* dApplication){
         // mtb_Draw_Local_Gif({"/mtblg/mtbStart.gif", 0, 0, 1});
         // delay(1000);
         // while (countdown-- > 0){
-        //     dma_display->setBrightness(countdown);
+        //     mtb_Panel_Set_Brightness(countdown);
         //     delay(10);
         // }      
         mtb_Draw_Local_Png({"/mtblg/pixlpal.png", 0, 0});
         while(countup++ < panelBrightness){
-            dma_display->setBrightness(countup);
+            mtb_Panel_Set_Brightness(countup);
             delay(20);
         }
     }
@@ -61,14 +61,14 @@ void  firmwareUpdateTask(void* dApplication){
 do{
     if(Mtb_Applications::firmwareOTA_Status > 6){
         ESP_LOGI(TAG, "Code entered USB Firmware Update\n");
-        dma_display->clearScreen();
+        mtb_Panel_Clear_Screen();
         uint8_t attemptResult = attemptUSB_FirmwareUpdate();
         if(attemptResult == pdPASS) attemptUSB_SPIFFSUpdate();
         else break;
         Mtb_Applications::firmwareOTA_Status = pdTRUE;
     } else if (Mtb_Applications::spiffsOTA_Status > 6){
         ESP_LOGI(TAG, "Code entered USB Firmware Update\n");
-        dma_display->clearScreen();
+        mtb_Panel_Clear_Screen();
         mtb_Launch_This_Service(mtb_Usb_Mass_Storage_Sv);
         uint8_t attemptResult = attemptUSB_SPIFFSUpdate();
         if(attemptResult != pdPASS) break;

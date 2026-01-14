@@ -13,7 +13,7 @@ static const char pixelAnimClockAppRoute[] = "0/1";
 struct PixAnimClkSettings_t{
     char headerText[200];
     uint16_t headerTextColor;
-    uint16_t themeColor[3];
+    uint16_t themeColor[2];
     uint16_t animInterval;
 };
 

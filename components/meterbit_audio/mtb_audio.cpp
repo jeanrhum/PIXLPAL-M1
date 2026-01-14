@@ -6,13 +6,11 @@
 #include <cstdint>
 #include "esp_system.h"
 #include <time.h>
-#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include "FFT.h"
 #include "mtb_nvs.h"
 #include "ledDriver.h"
 #include "patternsHUB75.h"
 #include "mtb_audio.h"
-#include "lib8tion.h"
 #include "mtb_engine.h"
 #include "mtb_usb_fs.h"   // make sure this is in your include path
 #include "microphone.h"
@@ -178,8 +176,8 @@ void audioProcessing_Task(void *d_Service){
     switch(audioOutMode){
       case CONNECT_HOST: mtb_audioPlayer->contdSucceed = (int8_t) audio->connecttohost(mtb_audioPlayer->host_Url.c_str(), mtb_audioPlayer->host_Username.c_str(), mtb_audioPlayer->host_Password.c_str());
         break;
-      case OPENAI_SPEECH: mtb_audioPlayer->contdSucceed = (int8_t) audio->openai_speech(String(openai_key) , mtb_audioPlayer->openAI_Model, mtb_audioPlayer->speech_Message, mtb_audioPlayer->openAI_Voice,mtb_audioPlayer->openAI_ResponseFormat, mtb_audioPlayer->openAI_Speed);
-        break;
+      // case OPENAI_SPEECH: mtb_audioPlayer->contdSucceed = (int8_t) audio->openai_speech(String(openai_key) , mtb_audioPlayer->openAI_Model, mtb_audioPlayer->speech_Message, mtb_audioPlayer->openAI_Voice,mtb_audioPlayer->openAI_ResponseFormat, mtb_audioPlayer->openAI_Speed);
+      //   break;
       case CONNECT_SPEECH: mtb_audioPlayer->contdSucceed = (int8_t) audio->connecttospeech(mtb_audioPlayer->speech_Message.c_str(), mtb_audioPlayer->ggle_Lang.c_str());
         break;
       case CONNECT_USB_FS: mtb_audioPlayer->contdSucceed = (int8_t) audio->connecttoFS(USBFS, mtb_audioPlayer->filePath.c_str(), mtb_audioPlayer->fileStartPos);
@@ -518,109 +516,109 @@ void audioVisualizer(){
 #endif
 
     switch(audioSpecVisual_Set.selectedPattern){
-       // Now visualize those bar heights
-       case PATTERN_0 :
-        PeakDirection = AUD_VIS_DOWN;
-        BoxedBars(band, barHeight);
-        BluePeak(band);
-           break;
+      //  // Now visualize those bar heights
+      //  case PATTERN_0 :
+      //   PeakDirection = AUD_VIS_DOWN;
+      //   BoxedBars(band, barHeight);
+      //   BluePeak(band);
+      //      break;
 
-       case PATTERN_1 :
-        PeakDirection = AUD_VIS_DOWN;
-        BoxedBars2(band, barHeight);
-        BluePeak(band);
-           break;
+      //  case PATTERN_1 :
+      //   PeakDirection = AUD_VIS_DOWN;
+      //   BoxedBars2(band, barHeight);
+      //   BluePeak(band);
+      //      break;
 
-       case PATTERN_2 :
-         PeakDirection = AUD_VIS_DOWN;
-         BoxedBars3(band, barHeight);
-         RedPeak(band);
-           break;
+      //  case PATTERN_2 :
+      //    PeakDirection = AUD_VIS_DOWN;
+      //    BoxedBars3(band, barHeight);
+      //    RedPeak(band);
+      //      break;
 
-       case PATTERN_3 :
-         PeakDirection = AUD_VIS_DOWN;
-         RedBars(band, barHeight);
-         BluePeak(band);
-           break;
+      //  case PATTERN_3 :
+      //    PeakDirection = AUD_VIS_DOWN;
+      //    RedBars(band, barHeight);
+      //    BluePeak(band);
+      //      break;
 
-       case PATTERN_4 :
-         PeakDirection = AUD_VIS_DOWN;
-         ColorBars(band, barHeight);
-           break;
+      //  case PATTERN_4 :
+      //    PeakDirection = AUD_VIS_DOWN;
+      //    ColorBars(band, barHeight);
+      //      break;
 
-       case PATTERN_5 :
-         PeakDirection = AUD_VIS_DOWN;
-         Twins(band, barHeight);
-         WhitePeak(band);
-           break;
+      //  case PATTERN_5 :
+      //    PeakDirection = AUD_VIS_DOWN;
+      //    Twins(band, barHeight);
+      //    WhitePeak(band);
+      //      break;
 
-       case PATTERN_6 :
-         PeakDirection = AUD_VIS_DOWN;
-         Twins2(band, barHeight);
-         WhitePeak(band);
-           break;
+      //  case PATTERN_6 :
+      //    PeakDirection = AUD_VIS_DOWN;
+      //    Twins2(band, barHeight);
+      //    WhitePeak(band);
+      //      break;
 
-       case PATTERN_7 :
-          PeakDirection = AUD_VIS_DOWN;
-         TriBars(band, barHeight);
-         DoublePeak(band);
-           break;
+      //  case PATTERN_7 :
+      //     PeakDirection = AUD_VIS_DOWN;
+      //    TriBars(band, barHeight);
+      //    DoublePeak(band);
+      //      break;
 
-       case PATTERN_8 :
-         PeakDirection = AUD_VIS_DOWN;
-         TriBars(band, barHeight);
-         TriPeak(band);
-           break;
+      //  case PATTERN_8 :
+      //    PeakDirection = AUD_VIS_DOWN;
+      //    TriBars(band, barHeight);
+      //    TriPeak(band);
+      //      break;
 
-       case PATTERN_9 :
-        PeakDirection = AUD_VIS_DOWN;
-        centerBars(band, barHeight);
-           break;
+      //  case PATTERN_9 :
+      //   PeakDirection = AUD_VIS_DOWN;
+      //   centerBars(band, barHeight);
+      //      break;
 
-       case PATTERN_10 :
-        PeakDirection = AUD_VIS_DOWN;
-        centerBars2(band, barHeight);
-           break;
+      //  case PATTERN_10 :
+      //   PeakDirection = AUD_VIS_DOWN;
+      //   centerBars2(band, barHeight);
+      //      break;
 
-       case PATTERN_11 :
-       PeakDirection = AUD_VIS_DOWN;
-       BlackBars(band, barHeight);
-       DoublePeak(band);
-           break;
+      //  case PATTERN_11 :
+      //  PeakDirection = AUD_VIS_DOWN;
+      //  BlackBars(band, barHeight);
+      //  DoublePeak(band);
+      //      break;
            
-        case PATTERN_12 :
-        GradientBars(band, barHeight);
-        break;
-        case PATTERN_13 :
-        CheckerboardBars(band, barHeight);
-        break;
-        case PATTERN_14 :
-        RainbowGradientBars(band, barHeight);
-        break;
-        case PATTERN_15 :
-        StripedBars(band, barHeight);
-        break;
-        case PATTERN_16 :
-        DiagonalBars(band, barHeight);
-        break;
-        case PATTERN_17 :
-        VerticalGradientBars(band, barHeight);
-        break;
-        case PATTERN_18 :
-        ZigzagBars(band, barHeight);
-        break;
-        case PATTERN_19 :
-        DottedBars(band, barHeight);
-        break;
-        case PATTERN_20 :
-        ColorFadeBars(band, barHeight);
-        break;
-        case PATTERN_21 :
-        PulsingBars(band, barHeight);
-        break;
-        case PATTERN_22 :
-        FlashingBars(band, barHeight);
-        break;
+      //   case PATTERN_12 :
+      //   GradientBars(band, barHeight);
+      //   break;
+      //   case PATTERN_13 :
+      //   CheckerboardBars(band, barHeight);
+      //   break;
+      //   case PATTERN_14 :
+      //   RainbowGradientBars(band, barHeight);
+      //   break;
+      //   case PATTERN_15 :
+      //   StripedBars(band, barHeight);
+      //   break;
+      //   case PATTERN_16 :
+      //   DiagonalBars(band, barHeight);
+      //   break;
+      //   case PATTERN_17 :
+      //   VerticalGradientBars(band, barHeight);
+      //   break;
+      //   case PATTERN_18 :
+      //   ZigzagBars(band, barHeight);
+      //   break;
+      //   case PATTERN_19 :
+      //   DottedBars(band, barHeight);
+      //   break;
+      //   case PATTERN_20 :
+      //   ColorFadeBars(band, barHeight);
+      //   break;
+      //   case PATTERN_21 :
+      //   PulsingBars(band, barHeight);
+      //   break;
+      //   case PATTERN_22 :
+      //   FlashingBars(band, barHeight);
+      //   break;
         // case PATTERN_23 :
         //  PeakDirection = AUD_VIS_UP;
         //  TriBars(band, barHeight);
@@ -637,19 +635,19 @@ void audioVisualizer(){
 
  loopcounter++;
    // Decay peak
- EVERY_N_MILLISECONDS(Fallingspeed){
-   for (uint8_t band = 0; band < audioSpecVisual_Set.noOfBands; band++){
-     if(PeakFlag[band]==1){
-       PeakTimer[band]++;
-       if (PeakTimer[band]> Peakdelay){PeakTimer[band]=0;PeakFlag[band]=0;}
-     }
-     else if ((peak[band] > 0) &&(PeakDirection==AUD_VIS_UP)){ 
-       peak[band] += 1;
-       if (peak[band]>(kMatrixHeight+10))peak[band]=0;
-       } // when to far off screen then reset peak height
-     else if ((peak[band] > 0)&&(PeakDirection==AUD_VIS_DOWN)){ peak[band] -= 1;}
-   }   
- }
+//  EVERY_N_MILLISECONDS(Fallingspeed){
+//    for (uint8_t band = 0; band < audioSpecVisual_Set.noOfBands; band++){
+//      if(PeakFlag[band]==1){
+//        PeakTimer[band]++;
+//        if (PeakTimer[band]> Peakdelay){PeakTimer[band]=0;PeakFlag[band]=0;}
+//      }
+//      else if ((peak[band] > 0) &&(PeakDirection==AUD_VIS_UP)){ 
+//        peak[band] += 1;
+//        if (peak[band]>(kMatrixHeight+10))peak[band]=0;
+//        } // when to far off screen then reset peak height
+//      else if ((peak[band] > 0)&&(PeakDirection==AUD_VIS_DOWN)){ peak[band] -= 1;}
+//    }   
+//  }
 }
 
  void randomPattern_TimerCallback(TimerHandle_t dHandle){

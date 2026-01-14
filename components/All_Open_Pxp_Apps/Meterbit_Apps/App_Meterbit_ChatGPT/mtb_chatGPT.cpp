@@ -89,7 +89,7 @@ void  chatGPT_App_Task(void* dApplication){
   chatGPT_Text.mtb_Write_Colored_String("ChatGPT", WHITE);
   mtb_Draw_Local_Png({"/batIcons/aiResp.png", 2, 45});
   mtb_Draw_Local_Png({"/batIcons/hmanSph.png", 2, 55});
-  dma_display->drawRect(0, 43, 128, 21, PURPLE_NAVY);
+  mtb_Panel_Draw_Rect(0, 43, 127, 63, PURPLE_NAVY);
   
 //************************************************************************************* */
   chat.setModel("gpt-3.5-turbo");   //Model to use for completion. Default is gpt-3.5-turbo

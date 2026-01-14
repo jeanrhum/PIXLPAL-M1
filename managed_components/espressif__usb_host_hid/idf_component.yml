@@ -1,5 +1,5 @@
 dependencies:
-  idf: '>=4.4'
+  idf: '>=5.0'
   usb:
     public: true
     rules:
@@ -11,9 +11,10 @@ files:
   exclude:
   - test_app
   - host_test
+issues: https://github.com/espressif/esp-usb/issues
 repository: git://github.com/espressif/esp-usb.git
 repository_info:
-  commit_sha: 0c2750cea32ebcff2c5bffd04fadf9579fa97009
+  commit_sha: 8add017b798aa7f36f2405a7f0a3ea0b79be36ea
   path: host/class/hid/usb_host_hid
 targets:
 - esp32s2
@@ -22,4 +23,4 @@ targets:
 - esp32h4
 - linux
 url: https://github.com/espressif/esp-usb/tree/master/host/class/hid/usb_host_hid
-version: 1.0.4
+version: 1.1.0

@@ -89,7 +89,7 @@ void  pixAnimClock_App_Task(void* dApplication){
   savedPixAnimClkSet = (PixAnimClkSettings_t){
       .headerText = "HAPPY HOME",
       .headerTextColor = BLACK,
-      .themeColor = {TEAL, YELLOW, BLACK},
+      .themeColor = {TEAL, YELLOW},
       .animInterval = 1
   };
 
@@ -303,7 +303,7 @@ void setClockTitleAndColor(JsonDocument& dCommand){
 
   color = dCommand["color"];
   color += 4;
-  titleColor = dma_display->color565(((uint8_t)((strtol(color, NULL, 16) >> 16))), ((uint8_t)((strtol(color, NULL, 16) >> 8))), ((uint8_t)((strtol(color, NULL, 16) >> 0))));
+  titleColor = mtb_Panel_Color565(((uint8_t)((strtol(color, NULL, 16) >> 16))), ((uint8_t)((strtol(color, NULL, 16) >> 8))), ((uint8_t)((strtol(color, NULL, 16) >> 0))));
 
   if(strlen(title) < HEADER_TEXT_LIMIT){
     headerTextScroll->mtb_Scroll_Active(STOP_SCROLL);
@@ -331,19 +331,12 @@ void setPixAnimTheme(JsonDocument& dCommand){
     color = dCommand["value"];
     color += 4;
 
-    savedPixAnimClkSet.themeColor[0] = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    savedPixAnimClkSet.themeColor[0] = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     }
     else if (strcmp(name, "Inner Shell") == 0){
     color = dCommand["value"];
     color += 4;
-    savedPixAnimClkSet.themeColor[1] = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
-    }
-    else if (strcmp(name, "Borders") == 0){
-    color = dCommand["value"];
-    color += 4;
-    
-    //savedPixAnimClkSet.themeColor[2] = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
-    savedPixAnimClkSet.themeColor[2] = BLACK;
+    savedPixAnimClkSet.themeColor[1] = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     } else color = NULL;
 
     printPixAnimClkThm(savedPixAnimClkSet.themeColor);
@@ -375,27 +368,27 @@ void setPixAnimClkColors(JsonDocument& dCommand){
     color = dCommand["value"];
     color += 4;
 
-    clk_Cols.hourMinColour = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    clk_Cols.hourMinColour = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     }
     else if (strcmp(name, "Seconds") == 0){
     color = dCommand["value"];
     color += 4;
-    clk_Cols.secColor = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    clk_Cols.secColor = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     }
     else if (strcmp(name, "Meridiem") == 0){
     color = dCommand["value"];
     color += 4;
-    clk_Cols.meridiemColor = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    clk_Cols.meridiemColor = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     }
     else if (strcmp(name, "Weekday") == 0){
     color = dCommand["value"];
     color += 4;
-    clk_Cols.weekDayColour = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    clk_Cols.weekDayColour = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     }
     else if (strcmp(name, "Date") == 0){
     color = dCommand["value"];
     color += 4;
-    clk_Cols.dateColour = dma_display->color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
+    clk_Cols.dateColour = mtb_Panel_Color565(((uint8_t)((strtol(color,NULL,16) >> 16))), ((uint8_t)((strtol(color,NULL,16) >> 8))),((uint8_t)((strtol(color,NULL,16) >> 0))));
     } else color = NULL;
 
     mtb_Write_Nvs_Struct("Clock Cols", &clk_Cols, sizeof(Clock_Colors));
@@ -512,15 +505,19 @@ while (MTB_SERV_IS_ACTIVE == pdTRUE && (entry = readdir(dir)) != NULL) {
        MTB_SERV_IS_ACTIVE == pdTRUE && show_Duration < set_Duration; ) {
     while (MTB_SERV_IS_ACTIVE == pdTRUE && gd_get_frame(gif)) {
       gd_render_frame(gif, buffer);
-      for (uint8_t p = 0, x = 5; p < width; p++, x++) {
-        for (uint8_t q = 0, y = 25; q < height; q++, y++) {
-          uint16_t c = dma_display->color565(
-              buffer[q*width*3 + p*3],
-              buffer[q*width*3 + p*3 + 1],
-              buffer[q*width*3 + p*3 + 2]);
-          dma_display->drawPixel(x, y, c);
-        }
-      }
+
+      mtb_Panel_Draw_Frame(5, 25, width, height, buffer);
+      // for (uint8_t p = 0, x = 5; p < width; p++, x++) {
+      //   for (uint8_t q = 0, y = 25; q < height; q++, y++) {
+      //     // uint16_t c = mtb_Panel_Color565(
+      //     //     buffer[q*width*3 + p*3],
+      //     //     buffer[q*width*3 + p*3 + 1],
+      //     //     buffer[q*width*3 + p*3 + 2]);
+      //     // mtb_Panel_Draw_Pixel565(x, y, c);
+      //   }
+      // }
+
+
       TickType_t delay_ms = gif->gce.delay * 10;
       vTaskDelay(pdMS_TO_TICKS(delay_ms));
       show_Duration += delay_ms;
@@ -537,11 +534,9 @@ closedir(dir);
 }
 
 void printPixAnimClkThm(uint16_t* themeColor){
-  dma_display->fillScreen(themeColor[0]);   // Fill background color1.
-  dma_display->drawRect(1, 19, 126, 44, themeColor[2]);   // Draw outer border.
-  dma_display->fillRect(2, 20, 124, 42, themeColor[1]);   // Fill background color2
-  dma_display->fillRect(43, 23, 80, 36, BLACK);           // Fill clock area color.
-
-  dma_display->drawRect(4, 24, 34, 34, themeColor[2]);   // Draw inner borders1
-  dma_display->drawRect(42, 22, 82, 38, themeColor[2]);   // Draw inner borders2
+  mtb_Panel_Fill_Screen(themeColor[0]);   // Fill background color1.
+  mtb_Panel_Draw_Rect(1, 19, 126, 62, BLACK);   // Draw outer border.
+  mtb_Panel_Fill_Rect(2, 20, 125, 61, themeColor[1]);   // Fill background color2
+  mtb_Panel_Fill_Rect(43, 23, 122, 58, BLACK);           // Fill clock area color.
+  mtb_Panel_Draw_Rect(4, 24, 37, 57, BLACK);   // Draw inner borders1
 }

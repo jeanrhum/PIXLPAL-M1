@@ -78,14 +78,14 @@ void adjustwatchTimeEncoder(rotary_encoder_rotation_t direction){
 if (direction == ROT_CLOCKWISE){
     // if(panelBrightness <= 250){ 
     // panelBrightness += 5;
-    // dma_display->setBrightness(panelBrightness); // 0-255
+    // mtb_Panel_Set_Brightness(panelBrightness); // 0-255
     // mtb_Write_Nvs_Struct("pan_brghnss", &panelBrightness, sizeof(uint8_t));
     // }
     // if(panelBrightness >= 255) do_beep(CLICK_BEEP);
 } else if(direction == ROT_COUNTERCLOCKWISE){
     // if(panelBrightness >= 7){
     // panelBrightness -= 5;
-    // dma_display->setBrightness(panelBrightness); //0-255
+    // mtb_Panel_Set_Brightness(panelBrightness); //0-255
     // mtb_Write_Nvs_Struct("pan_brghnss", &panelBrightness, sizeof(uint8_t));
     // }
     // if(panelBrightness <= 6) do_beep(CLICK_BEEP);

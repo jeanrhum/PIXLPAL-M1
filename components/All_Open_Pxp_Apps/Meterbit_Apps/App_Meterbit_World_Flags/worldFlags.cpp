@@ -103,7 +103,7 @@ void changeWorldFlagButton(button_event_t button_Data){
 }
 
 void wipeFlagBackground(void){
-    dma_display->fillScreen(dma_display->color565(0, 0, 16)); // Clear the entire screen
+    mtb_Panel_Fill_Screen(mtb_Panel_Color565(0, 0, 16)); // Clear the entire screen
 }
 //************************************************************************************ */
 //************************************************************************************ */

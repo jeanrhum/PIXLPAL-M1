@@ -13,6 +13,7 @@
 
 #define CHECK_SCROLL        0
 #define STOP_SCROLL         1
+
 #define CHAR_LEN            1005
 // #define SCROLL_PIX_WIDTH    6000
 // #define SCROLL_PIX_HEIGHT   9

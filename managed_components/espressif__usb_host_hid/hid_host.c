@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -18,6 +18,11 @@
 #include "usb/usb_host.h"
 
 #include "usb/hid_host.h"
+
+// We are allowing realloc ctrl_xfer buffer, so max report desc size is limited by sane value
+// based on very large, exotic devices: can go into the low kilobytes
+#define HID_MIN_REPORT_DESC_LEN     512u
+#define HID_MAX_REPORT_DESC_LEN     2048u
 
 // HID spinlock
 static portMUX_TYPE hid_lock = portMUX_INITIALIZER_UNLOCKED;
@@ -91,6 +96,7 @@ typedef enum {
     HID_INTERFACE_STATE_READY,                  /**< HID Interface opened and ready to start transfer */
     HID_INTERFACE_STATE_ACTIVE,                 /**< HID Interface is in use */
     HID_INTERFACE_STATE_WAIT_USER_DELETION,     /**< HID Interface wait user to be removed */
+    HID_INTERFACE_STATE_SUSPENDED,              /**< HID Interface (and the whole device) is suspended */
     HID_INTERFACE_STATE_MAX
 } hid_iface_state_t;
 
@@ -111,6 +117,7 @@ typedef struct hid_interface {
     hid_host_interface_event_cb_t user_cb;  /**< Interface application callback */
     void *user_cb_arg;                      /**< Interface application callback arg */
     hid_iface_state_t state;                /**< Interface state */
+    hid_iface_state_t last_state;           /**< Interface last state before entering suspended mode */
 } hid_iface_t;
 
 /**
@@ -126,10 +133,12 @@ typedef struct {
     void *user_arg;                                             /**< User application callback args */
     bool event_handling_started;                                /**< Events handler started flag */
     SemaphoreHandle_t all_events_handled;                       /**< Events handler semaphore */
+    SemaphoreHandle_t open_close_mutex;                         /**< Mutex to prevent race conditions during device open/close */
     volatile bool end_client_event_handling;                    /**< Client event handling flag */
 } hid_driver_t;
 
 static hid_driver_t *s_hid_driver;                              /**< Internal pointer to HID driver */
+static StaticSemaphore_t s_open_close_mutex_buffer;
 
 
 // ----------------------- Private Prototypes ----------------------------------
@@ -550,6 +559,179 @@ static esp_err_t hid_host_device_disconnected(usb_device_handle_t dev_hdl)
     return ESP_OK;
 }
 
+#ifdef HID_HOST_SUSPEND_RESUME_API_SUPPORTED
+
+/**
+ * @brief Suspend interface
+ *
+ * @note endpoints are already halted and flushed when a global suspend is issues by the USB Host lib
+ * @param[in] iface    HID interface handle
+ * @param[in] stop_ep  Stop (halt and flush) endpoint
+ *
+ * @return esp_err_t
+ */
+static esp_err_t hid_host_suspend_interface(hid_iface_t *iface, bool stop_ep)
+{
+    HID_RETURN_ON_INVALID_ARG(iface);
+    HID_RETURN_ON_INVALID_ARG(iface->parent);
+
+    HID_RETURN_ON_FALSE(is_interface_in_list(iface),
+                        ESP_ERR_NOT_FOUND,
+                        "Interface handle not found");
+
+    HID_RETURN_ON_FALSE((HID_INTERFACE_STATE_SUSPENDED != iface->state),
+                        ESP_ERR_INVALID_STATE,
+                        "Interface wrong state");
+
+    // EP is usually stopped by usb_host_lib, in case of global suspend, thus no need to Halt->Flush EP again
+    if (stop_ep) {
+        HID_RETURN_ON_ERROR( usb_host_endpoint_halt(iface->parent->dev_hdl, iface->ep_in),
+                             "Unable to HALT EP");
+        HID_RETURN_ON_ERROR( usb_host_endpoint_flush(iface->parent->dev_hdl, iface->ep_in),
+                             "Unable to FLUSH EP");
+        // Don't clear EP, it must remain halted, when the device is in suspended state
+    }
+
+    iface->last_state = iface->state;
+    iface->state = HID_INTERFACE_STATE_SUSPENDED;
+
+    return ESP_OK;
+}
+
+/**
+ * @brief Resume interface
+ *
+ * @note endpoints are already cleared when a global resume is issues by the USB Host lib
+ * @param[in] iface      HID interface handle
+ * @param[in] resume_ep  Resume (clear) endpoint
+ *
+ * @return esp_err_t
+ */
+static esp_err_t hid_host_resume_interface(hid_iface_t *iface, bool resume_ep)
+{
+    HID_RETURN_ON_INVALID_ARG(iface);
+    HID_RETURN_ON_INVALID_ARG(iface->parent);
+
+    HID_RETURN_ON_FALSE(is_interface_in_list(iface),
+                        ESP_ERR_NOT_FOUND,
+                        "Interface handle not found");
+
+    if (HID_INTERFACE_STATE_ACTIVE == iface->state) {
+        // Interface already auto-resumed by hid_host_device_start(), return early and continue to resume event delivery
+        return ESP_OK;
+    }
+
+    HID_RETURN_ON_FALSE ((HID_INTERFACE_STATE_SUSPENDED == iface->state),
+                         ESP_ERR_INVALID_STATE,
+                         "Interface wrong state");
+
+    // EP is usually cleared by usb_host_lib, in case of global suspend, thus no need to Clear an EP again
+    if (resume_ep) {
+        usb_host_endpoint_clear(iface->parent->dev_hdl, iface->ep_in);
+    }
+
+    // Use the last device state before the device went to suspended state as the current state
+    iface->state = iface->last_state;
+
+    if (iface->in_xfer == NULL) {
+        return ESP_OK;
+    }
+
+    // If the last state before the device went to suspended state was active state, start the data transfer
+    if (iface->last_state == HID_INTERFACE_STATE_ACTIVE) {
+        // start data transfer
+        HID_RETURN_ON_ERROR( usb_host_transfer_submit(iface->in_xfer), "Unable to start data transfer");
+    }
+
+    return ESP_OK;
+}
+
+/**
+ * @brief Suspend device
+ *
+ * Go through list, suspend all devices and deliver suspend events
+ *
+ * @param[in] dev_hdl    USB Device handle
+ *
+ * @return esp_err_t
+ */
+static esp_err_t hid_host_device_suspended(usb_device_handle_t dev_hdl)
+{
+    hid_device_t *hid_device = get_hid_device_by_handle(dev_hdl);
+    HID_RETURN_ON_INVALID_ARG(hid_device);
+
+    HID_ENTER_CRITICAL();
+    hid_iface_t *hid_iface_curr;
+    hid_iface_t *hid_iface_next;
+    // Go through list
+    hid_iface_curr = STAILQ_FIRST(&s_hid_driver->hid_ifaces_tailq);
+    while (hid_iface_curr != NULL) {
+        hid_iface_next = STAILQ_NEXT(hid_iface_curr, tailq_entry);
+        HID_EXIT_CRITICAL();
+
+        if (hid_iface_curr->parent && (hid_iface_curr->parent->dev_addr == hid_device->dev_addr)) {
+            esp_err_t ret = hid_host_suspend_interface(hid_iface_curr, false);
+
+            // Make sure the device is connected and the interface is found otherwise don't deliver suspend event
+            if (ret != ESP_ERR_NOT_FOUND) {
+
+                // We will deliver the suspend event, if the hid_host_suspend_interface fails with other errors,
+                // as the usb_host_lib has already suspended the root port anyway
+                hid_host_user_interface_callback(hid_iface_curr, HID_HOST_INTERFACE_EVENT_SUSPENDED);
+            }
+        }
+        HID_ENTER_CRITICAL();
+        hid_iface_curr = hid_iface_next;
+    }
+    HID_EXIT_CRITICAL();
+
+    return ESP_OK;
+}
+
+/**
+ * @brief Resume device
+ *
+ * Go through list, resume all devices and deliver resume events
+ *
+ * @param[in] dev_hdl    USB Device handle
+ *
+ * @return esp_err_t
+ */
+static esp_err_t hid_host_device_resumed(usb_device_handle_t dev_hdl)
+{
+    hid_device_t *hid_device = get_hid_device_by_handle(dev_hdl);
+    HID_RETURN_ON_INVALID_ARG(hid_device);
+
+    HID_ENTER_CRITICAL();
+    hid_iface_t *hid_iface_curr;
+    hid_iface_t *hid_iface_next;
+    // Go through list
+    hid_iface_curr = STAILQ_FIRST(&s_hid_driver->hid_ifaces_tailq);
+    while (hid_iface_curr != NULL) {
+        hid_iface_next = STAILQ_NEXT(hid_iface_curr, tailq_entry);
+        HID_EXIT_CRITICAL();
+
+        if (hid_iface_curr->parent && (hid_iface_curr->parent->dev_addr == hid_device->dev_addr)) {
+            esp_err_t ret = hid_host_resume_interface(hid_iface_curr, false);
+
+            // Make sure the device is connected and the interface is found otherwise don't deliver resume event
+            if (ret != ESP_ERR_NOT_FOUND) {
+
+                // We will deliver the resume event, if the hid_host_resume_interface fails with other errors,
+                // as the usb_host_lib has already resumed the root port anyway
+                hid_host_user_interface_callback(hid_iface_curr, HID_HOST_INTERFACE_EVENT_RESUMED);
+            }
+        }
+        HID_ENTER_CRITICAL();
+        hid_iface_curr = hid_iface_next;
+    }
+    HID_EXIT_CRITICAL();
+
+    return ESP_OK;
+}
+
+#endif // HID_HOST_SUSPEND_RESUME_API_SUPPORTED
+
 /**
  * @brief USB Host Client's event callback
  *
@@ -558,10 +740,28 @@ static esp_err_t hid_host_device_disconnected(usb_device_handle_t dev_hdl)
  */
 static void client_event_cb(const usb_host_client_event_msg_t *event, void *arg)
 {
-    if (event->event == USB_HOST_CLIENT_EVENT_NEW_DEV) {
+    switch (event->event) {
+    case USB_HOST_CLIENT_EVENT_NEW_DEV:
+        ESP_LOGD(TAG, "New device connected");
         hid_host_device_init_attempt(event->new_dev.address);
-    } else if (event->event == USB_HOST_CLIENT_EVENT_DEV_GONE) {
+        break;
+    case USB_HOST_CLIENT_EVENT_DEV_GONE:
+        ESP_LOGD(TAG, "Device suddenly disconnected");
         hid_host_device_disconnected(event->dev_gone.dev_hdl);
+        break;
+#ifdef HID_HOST_SUSPEND_RESUME_API_SUPPORTED
+    case USB_HOST_CLIENT_EVENT_DEV_SUSPENDED:
+        ESP_LOGD(TAG, "Device suspended");
+        hid_host_device_suspended(event->dev_suspend_resume.dev_hdl);
+        break;
+    case USB_HOST_CLIENT_EVENT_DEV_RESUMED:
+        ESP_LOGD(TAG, "Device resumed");
+        hid_host_device_resumed(event->dev_suspend_resume.dev_hdl);
+        break;
+#endif // HID_HOST_SUSPEND_RESUME_API_SUPPORTED
+    default:
+        ESP_LOGW(TAG, "Unrecognized USB Host client event");
+        break;
     }
 }
 
@@ -628,14 +828,19 @@ static esp_err_t hid_host_disable_interface(hid_iface_t *iface)
                         ESP_ERR_NOT_FOUND,
                         "Interface handle not found");
 
-    HID_RETURN_ON_FALSE((HID_INTERFACE_STATE_ACTIVE == iface->state),
+    HID_RETURN_ON_FALSE((HID_INTERFACE_STATE_ACTIVE == iface->state ||
+                         HID_INTERFACE_STATE_SUSPENDED == iface->state),
                         ESP_ERR_INVALID_STATE,
                         "Interface wrong state");
 
-    HID_RETURN_ON_ERROR( usb_host_endpoint_halt(iface->parent->dev_hdl, iface->ep_in),
-                         "Unable to HALT EP");
-    HID_RETURN_ON_ERROR( usb_host_endpoint_flush(iface->parent->dev_hdl, iface->ep_in),
-                         "Unable to FLUSH EP");
+    if (HID_INTERFACE_STATE_ACTIVE == iface->state) {
+        HID_RETURN_ON_ERROR( usb_host_endpoint_halt(iface->parent->dev_hdl, iface->ep_in),
+                             "Unable to HALT EP");
+        HID_RETURN_ON_ERROR( usb_host_endpoint_flush(iface->parent->dev_hdl, iface->ep_in),
+                             "Unable to FLUSH EP");
+    }
+    // If interface state is suspended, the EP is already flushed and halted, only clear the EP
+    // If suspended, may return ESP_ERR_INVALID_STATE
     usb_host_endpoint_clear(iface->parent->dev_hdl, iface->ep_in);
 
     iface->state = HID_INTERFACE_STATE_READY;
@@ -771,33 +976,40 @@ static esp_err_t hid_control_transfer(hid_device_t *hid_device,
  */
 static esp_err_t usb_class_request_get_descriptor(hid_device_t *hid_device, const hid_class_request_t *req)
 {
-    esp_err_t ret;
-    usb_transfer_t *ctrl_xfer = hid_device->ctrl_xfer;
-    const size_t ctrl_size = hid_device->ctrl_xfer->data_buffer_size;
-
     HID_RETURN_ON_INVALID_ARG(hid_device);
     HID_RETURN_ON_INVALID_ARG(hid_device->ctrl_xfer);
     HID_RETURN_ON_INVALID_ARG(req);
     HID_RETURN_ON_INVALID_ARG(req->data);
 
+    if (req->wLength > HID_MAX_REPORT_DESC_LEN) {
+        ESP_LOGE(TAG, "Requested descriptor size exceeds maximum");
+        return ESP_ERR_INVALID_SIZE;
+    }
+
     HID_RETURN_ON_ERROR( hid_device_try_lock(hid_device, DEFAULT_TIMEOUT_MS),
                          "HID Device is busy by other task");
 
-    if (ctrl_size < (USB_SETUP_PACKET_SIZE + req->wLength)) {
-        usb_device_info_t dev_info;
-        ESP_ERROR_CHECK(usb_host_device_info(hid_device->dev_hdl, &dev_info));
-        // reallocate the ctrl xfer buffer for new length
-        ESP_LOGD(TAG, "Change HID ctrl xfer size from %d to %d",
-                 (int) ctrl_size,
-                 (int) (USB_SETUP_PACKET_SIZE + req->wLength));
+    esp_err_t ret;
+    const size_t ctrl_size = hid_device->ctrl_xfer->data_buffer_size;
+    const size_t required_size = USB_SETUP_PACKET_SIZE + req->wLength;
+
+    // Reallocate control transfer buffer if necessary
+    if (ctrl_size < required_size) {
+        ESP_LOGD(TAG, "Change HID ctrl xfer size from %"PRIu32" to %"PRIu32"",
+                 (uint32_t) ctrl_size,
+                 (uint32_t) required_size);
 
         usb_host_transfer_free(hid_device->ctrl_xfer);
-        HID_RETURN_ON_ERROR( usb_host_transfer_alloc(USB_SETUP_PACKET_SIZE + req->wLength,
-                                                     0,
-                                                     &hid_device->ctrl_xfer),
-                             "Unable to allocate transfer buffer for EP0");
+
+        if (usb_host_transfer_alloc(required_size, 0, &hid_device->ctrl_xfer) != ESP_OK) {
+            ESP_LOGE(TAG, "Unable to re-allocate transfer buffer for EP0");
+            hid_device->ctrl_xfer = NULL;
+            hid_device_unlock(hid_device);
+            return ESP_ERR_NO_MEM;
+        }
     }
 
+    usb_transfer_t *ctrl_xfer = hid_device->ctrl_xfer;
     usb_setup_packet_t *setup = (usb_setup_packet_t *)ctrl_xfer->data_buffer;
 
     setup->bmRequestType = USB_BM_REQUEST_TYPE_DIR_IN |
@@ -808,16 +1020,20 @@ static esp_err_t usb_class_request_get_descriptor(hid_device_t *hid_device, cons
     setup->wIndex = req->wIndex;
     setup->wLength = req->wLength;
 
-    ret = hid_control_transfer(hid_device,
-                               USB_SETUP_PACKET_SIZE + req->wLength,
-                               DEFAULT_TIMEOUT_MS);
+    ret = hid_control_transfer(hid_device, required_size, DEFAULT_TIMEOUT_MS);
 
-    if (ESP_OK == ret) {
-        ctrl_xfer->actual_num_bytes -= USB_SETUP_PACKET_SIZE;
-        if (ctrl_xfer->actual_num_bytes <= req->wLength) {
-            memcpy(req->data, ctrl_xfer->data_buffer + USB_SETUP_PACKET_SIZE, ctrl_xfer->actual_num_bytes);
-        } else {
+    if (ret == ESP_OK) {
+        if (ctrl_xfer->actual_num_bytes < USB_SETUP_PACKET_SIZE) {
             ret = ESP_ERR_INVALID_SIZE;
+        } else {
+            uint32_t response_len = ctrl_xfer->actual_num_bytes - USB_SETUP_PACKET_SIZE;
+            if (response_len <= req->wLength) {
+                memcpy(req->data,
+                       ctrl_xfer->data_buffer + USB_SETUP_PACKET_SIZE,
+                       response_len);
+            } else {
+                ret = ESP_ERR_INVALID_SIZE;
+            }
         }
     }
 
@@ -999,9 +1215,9 @@ esp_err_t hid_host_install_device(uint8_t dev_addr,
     /*
     * TIP: Usually, we need to allocate 'EP bMaxPacketSize0 + 1' here.
     * To take the size of a report descriptor into a consideration,
-    * we need to allocate more here, e.g. 512 bytes.
+    * we need to allocate more here.
     */
-    HID_GOTO_ON_ERROR(usb_host_transfer_alloc(512, 0, &hid_device->ctrl_xfer),
+    HID_GOTO_ON_ERROR(usb_host_transfer_alloc(HID_MIN_REPORT_DESC_LEN, 0, &hid_device->ctrl_xfer),
                       "Unable to allocate transfer buffer");
 
     HID_ENTER_CRITICAL();
@@ -1094,6 +1310,8 @@ esp_err_t hid_host_install(const hid_host_driver_config_t *config)
                       ESP_ERR_NO_MEM,
                       "Unable to create semaphore");
 
+    driver->open_close_mutex = xSemaphoreCreateMutexStatic(&s_open_close_mutex_buffer);
+
     HID_GOTO_ON_ERROR( usb_host_client_register(&client_config,
                                                 &driver->client_handle),
                        "Unable to register USB Host client");
@@ -1135,18 +1353,25 @@ fail:
 
 esp_err_t hid_host_uninstall(void)
 {
+    esp_err_t ret = ESP_OK;
+
     // Make sure hid driver is installed,
     HID_RETURN_ON_FALSE(s_hid_driver,
                         ESP_OK,
                         "HID Host driver was not installed");
 
+    // Wait for all open/close calls to finish
+    SemaphoreHandle_t open_close_mutex = s_hid_driver->open_close_mutex;
+    xSemaphoreTake(open_close_mutex, portMAX_DELAY);
+    HID_GOTO_ON_FALSE(s_hid_driver, ESP_OK, "HID Driver is not installed"); // Check again after acquiring mutex - driver may have been uninstalled
+
     // Make sure that hid driver
     // not being uninstalled from other task
     // and no hid device is registered
     HID_ENTER_CRITICAL();
-    HID_RETURN_ON_FALSE_CRITICAL( !s_hid_driver->end_client_event_handling, ESP_ERR_INVALID_STATE );
-    HID_RETURN_ON_FALSE_CRITICAL( STAILQ_EMPTY(&s_hid_driver->hid_devices_tailq), ESP_ERR_INVALID_STATE );
-    HID_RETURN_ON_FALSE_CRITICAL( STAILQ_EMPTY(&s_hid_driver->hid_ifaces_tailq), ESP_ERR_INVALID_STATE );
+    HID_GOTO_ON_FALSE_CRITICAL(!s_hid_driver->end_client_event_handling, ESP_ERR_INVALID_STATE);
+    HID_GOTO_ON_FALSE_CRITICAL(STAILQ_EMPTY(&s_hid_driver->hid_devices_tailq), ESP_ERR_INVALID_STATE);
+    HID_GOTO_ON_FALSE_CRITICAL(STAILQ_EMPTY(&s_hid_driver->hid_ifaces_tailq), ESP_ERR_INVALID_STATE);
     s_hid_driver->end_client_event_handling = true;
     HID_EXIT_CRITICAL();
 
@@ -1155,64 +1380,90 @@ esp_err_t hid_host_uninstall(void)
         // In case the event handling started, we must wait until it finishes
         xSemaphoreTake(s_hid_driver->all_events_handled, portMAX_DELAY);
     }
-    vSemaphoreDelete(s_hid_driver->all_events_handled);
     ESP_ERROR_CHECK( usb_host_client_deregister(s_hid_driver->client_handle) );
+
+    // Delete semaphores and free driver
+    vSemaphoreDelete(s_hid_driver->all_events_handled);
     free(s_hid_driver);
     s_hid_driver = NULL;
+    xSemaphoreGive(open_close_mutex); // Unblock any waiting tasks
     return ESP_OK;
+
+fail:
+    xSemaphoreGive(open_close_mutex);
+    return ret;
 }
 
 esp_err_t hid_host_device_open(hid_host_device_handle_t hid_dev_handle,
                                const hid_host_device_config_t *config)
 {
-    HID_RETURN_ON_FALSE(s_hid_driver,
-                        ESP_ERR_INVALID_STATE,
-                        "HID Driver is not installed");
+    esp_err_t ret;
+    HID_RETURN_ON_FALSE(s_hid_driver, ESP_ERR_INVALID_STATE, "HID Driver is not installed");
+    SemaphoreHandle_t open_close_mutex = s_hid_driver->open_close_mutex;
+
+    if (xSemaphoreTake(open_close_mutex, pdMS_TO_TICKS(DEFAULT_TIMEOUT_MS)) != pdTRUE) {
+        ESP_LOGW(TAG, "Timeout waiting for open/close mutex");
+        return ESP_ERR_TIMEOUT;
+    }
+    HID_GOTO_ON_FALSE(s_hid_driver, ESP_ERR_INVALID_STATE, "HID Driver is not installed"); // Check again after acquiring mutex - driver may have been uninstalled
 
     hid_iface_t *hid_iface = get_iface_by_handle(hid_dev_handle);
 
-    HID_RETURN_ON_INVALID_ARG(hid_iface);
+    HID_GOTO_ON_FALSE(hid_iface, ESP_ERR_INVALID_ARG, "Invalid HID device handle");
 
-    HID_RETURN_ON_FALSE((hid_iface->dev_params.proto >= HID_PROTOCOL_NONE)
-                        && (hid_iface->dev_params.proto < HID_PROTOCOL_MAX),
-                        ESP_ERR_INVALID_ARG,
-                        "HID device protocol not supported");
+    HID_GOTO_ON_FALSE((hid_iface->dev_params.proto >= HID_PROTOCOL_NONE)
+                      && (hid_iface->dev_params.proto < HID_PROTOCOL_MAX),
+                      ESP_ERR_INVALID_ARG,
+                      "HID device protocol not supported");
 
-    HID_RETURN_ON_FALSE((HID_INTERFACE_STATE_IDLE == hid_iface->state),
-                        ESP_ERR_INVALID_STATE,
-                        "Interface wrong state");
+    HID_GOTO_ON_FALSE(HID_INTERFACE_STATE_IDLE == hid_iface->state,
+                      ESP_ERR_INVALID_STATE,
+                      "Interface wrong state");
 
     // Claim interface, allocate xfer and save report callback
-    HID_RETURN_ON_ERROR( hid_host_interface_claim_and_prepare_transfer(hid_iface),
-                         "Unable to claim interface");
+    HID_GOTO_ON_ERROR(hid_host_interface_claim_and_prepare_transfer(hid_iface),
+                      "Unable to claim interface");
 
     // Save HID Interface callback
     hid_iface->user_cb = config->callback;
     hid_iface->user_cb_arg = config->callback_arg;
 
+    xSemaphoreGive(open_close_mutex);
     return ESP_OK;
+
+fail:
+    xSemaphoreGive(open_close_mutex);
+    return ret;
 }
 
 esp_err_t hid_host_device_close(hid_host_device_handle_t hid_dev_handle)
 {
-    hid_iface_t *hid_iface = get_iface_by_handle(hid_dev_handle);
+    esp_err_t ret = ESP_OK;
+    HID_RETURN_ON_FALSE(s_hid_driver, ESP_ERR_INVALID_STATE, "HID Driver is not installed");
+    SemaphoreHandle_t open_close_mutex = s_hid_driver->open_close_mutex;
 
-    HID_RETURN_ON_INVALID_ARG(hid_iface);
+    if (xSemaphoreTake(open_close_mutex, pdMS_TO_TICKS(DEFAULT_TIMEOUT_MS)) != pdTRUE) {
+        return ESP_ERR_TIMEOUT;
+    }
+    HID_GOTO_ON_FALSE(s_hid_driver, ESP_ERR_INVALID_STATE, "HID Driver is not installed"); // Check again after acquiring mutex - driver may have been uninstalled
+
+    hid_iface_t *hid_iface = get_iface_by_handle(hid_dev_handle);
+    HID_GOTO_ON_FALSE(hid_iface, ESP_ERR_INVALID_ARG, "Invalid HID device handle");
 
     ESP_LOGD(TAG, "Close addr %d, iface %d, state %d",
              hid_iface->dev_params.addr,
              hid_iface->dev_params.iface_num,
              hid_iface->state);
 
-    if (HID_INTERFACE_STATE_ACTIVE == hid_iface->state) {
-        HID_RETURN_ON_ERROR( hid_host_disable_interface(hid_iface),
-                             "Unable to disable HID Interface");
+    if (HID_INTERFACE_STATE_ACTIVE == hid_iface->state ||
+            HID_INTERFACE_STATE_SUSPENDED == hid_iface->state) {
+        HID_GOTO_ON_ERROR(hid_host_disable_interface(hid_iface),
+                          "Unable to disable HID Interface");
     }
 
     if (HID_INTERFACE_STATE_READY == hid_iface->state) {
-        HID_RETURN_ON_ERROR( hid_host_interface_release_and_free_transfer(hid_iface),
-                             "Unable to release HID Interface");
-
+        HID_GOTO_ON_ERROR(hid_host_interface_release_and_free_transfer(hid_iface),
+                          "Unable to release HID Interface");
         // If the device is closing by user before device detached we need to flush user callback here
         free(hid_iface->report_desc);
         hid_iface->report_desc = NULL;
@@ -1221,6 +1472,7 @@ esp_err_t hid_host_device_close(hid_host_device_handle_t hid_dev_handle)
     if (hid_iface->user_cb && hid_iface->state != HID_INTERFACE_STATE_WAIT_USER_DELETION) {
         // Let user handle the remove process and wait for next hid_host_device_close() call
         hid_iface->state = HID_INTERFACE_STATE_WAIT_USER_DELETION;
+        xSemaphoreGive(open_close_mutex); // Give mutex before calling user callback
         hid_host_user_interface_callback(hid_iface, HID_HOST_INTERFACE_EVENT_DISCONNECTED);
     } else {
         // Second call
@@ -1234,9 +1486,14 @@ esp_err_t hid_host_device_close(hid_host_device_handle_t hid_dev_handle)
         HID_ENTER_CRITICAL();
         _hid_host_remove_interface(hid_iface);
         HID_EXIT_CRITICAL();
+        xSemaphoreGive(open_close_mutex);
     }
 
     return ESP_OK;
+
+fail:
+    xSemaphoreGive(open_close_mutex);
+    return ret;
 }
 
 esp_err_t hid_host_handle_events(uint32_t timeout)
@@ -1313,7 +1570,7 @@ esp_err_t hid_host_device_start(hid_host_device_handle_t hid_dev_handle)
                         ESP_ERR_NOT_FOUND,
                         "Interface handle not found");
 
-    HID_RETURN_ON_FALSE ((HID_INTERFACE_STATE_READY == iface->state),
+    HID_RETURN_ON_FALSE ((HID_INTERFACE_STATE_READY == iface->state || HID_INTERFACE_STATE_SUSPENDED == iface->state),
                          ESP_ERR_INVALID_STATE,
                          "Interface wrong state");
 
@@ -1336,6 +1593,15 @@ esp_err_t hid_host_device_stop(hid_host_device_handle_t hid_dev_handle)
     hid_iface_t *iface = get_iface_by_handle(hid_dev_handle);
 
     HID_RETURN_ON_INVALID_ARG(iface);
+
+    HID_RETURN_ON_FALSE(is_interface_in_list(iface), ESP_ERR_NOT_FOUND, "Interface handle not found");
+
+    if (iface->state == HID_INTERFACE_STATE_SUSPENDED) {
+        // If interface is suspended, mark the last state as READY,
+        // as if the interface was stopped before entering suspended state
+        iface->last_state = HID_INTERFACE_STATE_READY;
+        return ESP_OK;
+    }
 
     return hid_host_disable_interface(iface);
 }
