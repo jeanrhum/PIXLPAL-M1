@@ -42,7 +42,7 @@ The firmware demonstrates how to build network-enabled visual applications such 
 - Integration of `esp-nn` (Espressif’s official neural network library).
 - External speaker and mouse support.
 - Completion of in-progress apps:  
-  iOS Notifications, Google & Outlook Calendars, News RSS, OpenWeather, and World Clock.
+  iOS Notifications, Google & Outlook Calendars, News RSS, OpenWeather, and Spotify updates.
 - BLE Central mode for wireless sensor integration.
 - Addition of BOM to hardware design files.
 - Integration of Home Assistant using MQTT

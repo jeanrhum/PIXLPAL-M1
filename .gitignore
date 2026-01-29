@@ -1,7 +1,7 @@
 
 /components/meterbit_engine/include/pxp_secret_keys.h
-/components/meterbit_graphics/mtb_text_scroll.cpp
-/components/meterbit_graphics/mtb_graphics.cpp
+#/components/meterbit_graphics/mtb_text_scroll.cpp
+#/components/meterbit_graphics/mtb_graphics.cpp
 
 /build/*
 **/.DS_Store

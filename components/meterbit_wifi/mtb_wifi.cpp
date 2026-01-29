@@ -79,7 +79,6 @@ void mtb_Wifi_Init() {
    
     mtb_Read_Nvs_Struct("Wifi Cred", &last_Successful_Wifi, sizeof(Wifi_Credentials));
 
-    //mtb_Launch_This_Service(mtb_Mqtt_Client_Sv);
     WiFi.begin(last_Successful_Wifi.ssid, last_Successful_Wifi.pass);
     mtb_Launch_This_Service(mtb_Sntp_Time_Sv);
 }
