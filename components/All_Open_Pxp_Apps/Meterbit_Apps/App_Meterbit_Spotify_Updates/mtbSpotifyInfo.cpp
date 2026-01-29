@@ -16,8 +16,7 @@
 #include "SpotifyAuth.h"
 #include "SpotifyPlayback.h"
 #include "mtbSpotifyInfo.h"
-//#include "my_secret_keys.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 static const char *TAG = "PXP_SPOTIFY";
 

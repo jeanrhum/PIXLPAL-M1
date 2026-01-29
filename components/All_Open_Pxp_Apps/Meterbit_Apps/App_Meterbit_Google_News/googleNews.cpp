@@ -4,7 +4,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include "mtb_text_scroll.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 // Global variables and handles
 EXT_RAM_BSS_ATTR SemaphoreHandle_t googleNewsupdateSem = NULL;

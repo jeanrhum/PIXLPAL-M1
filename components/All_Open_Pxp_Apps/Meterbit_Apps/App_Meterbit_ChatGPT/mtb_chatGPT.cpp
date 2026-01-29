@@ -17,8 +17,7 @@
 #include "LittleFS.h"
 #include "esp_heap_caps.h"
 #include "mtb_ble.h"
-//#include "my_secret_keys.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 //#define NUM_CHANNELS 1
 #define REC_DURATION_SECONDS_MAX 15

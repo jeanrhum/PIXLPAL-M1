@@ -6,8 +6,7 @@
 #include <FS.h>
 #include <LittleFS.h>
 #include "finnhub_Stats.h"
-//#include "my_secret_keys.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 static const char TAG[] = "FINNHUB_STATS";
 

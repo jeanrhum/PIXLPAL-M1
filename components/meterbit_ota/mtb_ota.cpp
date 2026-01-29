@@ -14,8 +14,7 @@
 #include "mtb_engine.h"
 #include "mtb_nvs.h"
 #include "mtb_buzzer.h"
-//#include "my_secret_keys.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 static const char TAG[] = "MTB-GHOTA";
 

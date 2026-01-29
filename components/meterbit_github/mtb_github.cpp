@@ -6,8 +6,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include "esp_heap_caps.h"  // for PSRAM allocation
-//#include "my_secret_keys.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 static const char TAG[] = "GITHUB_DOWNLOAD";
 

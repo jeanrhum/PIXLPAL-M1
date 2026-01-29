@@ -15,7 +15,7 @@
 #include "mtb_usb_fs.h"   // make sure this is in your include path
 #include "microphone.h"
 //#include "my_secret_keys.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
 static const char TAG[] = "METERBIT_DAC_N_MIC";

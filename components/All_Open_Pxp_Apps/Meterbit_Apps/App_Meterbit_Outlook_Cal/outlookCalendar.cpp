@@ -19,7 +19,7 @@
 #include "outlookAuth.h"
 #include "outlookCalendar.h"
 #include "mtb_graphics.h"
-#include "pxp_secret_keys.h"
+#include "my_secret_keys.h"
 
 static const char *TAG = "OUTLOOK_CAL";
 
