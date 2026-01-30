@@ -1,4 +1,4 @@
-#/components/meterbit_engine/include/my_secret_keys.h
+/components/meterbit_engine/include/my_secret_keys.h
 
 /build/*
 **/.DS_Store
