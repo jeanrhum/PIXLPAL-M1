@@ -14,5 +14,6 @@ static const char outlookClient_SECRET[] = "insert your outlook client secret he
 static const char *api_fooball_token_key = "place your api-football api key here ";    //get free key @ https://www.api-football.com/pricing
 static const char spotifyClient_ID[] = "place your Spotify Api key here ";     // Your client ID of your spotify APP
 static const char finnhubApiKey[] = "place your finn hub api key here "; //get free key @ finnhub.io/register
+static const char GNewsAPIKey[] = "place your GNews API key here"; // Replace with your actual GNews API token
 
 #endif

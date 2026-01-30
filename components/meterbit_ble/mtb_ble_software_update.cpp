@@ -23,7 +23,7 @@
 #include "NimBLEDevice.h"
 #include "mtb_ota.h"
 
-static const char TAG[] = "MTB-FLUTTERBLE-GHOTA";
+static const char TAG[] = "MTB-BLE-UPDATE";
 
 void attemptSoftwareUpdate(JsonDocument&);
 
